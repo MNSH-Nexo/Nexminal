@@ -213,6 +213,17 @@ function initTerminal() {
      stack duplicate listeners (which would double every typed character). */
   term.onData((data) => { if (ws && ws.readyState === 1) ws.send(data); });
 
+  /* Intercept Ctrl+V / Cmd+V BEFORE xterm's own key handler. xterm would
+     otherwise swallow it and send a literal ^V control char. Returning false
+     tells xterm to skip the key, so the browser performs its native paste
+     into xterm's textarea, which xterm then sends to the shell. */
+  term.attachCustomKeyEventHandler((e) => {
+    if (e.type === 'keydown' && (e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+      return false;
+    }
+    return true;
+  });
+
   /* --- Bitvise-style copy: auto-copy on selection --- */
   term.onSelectionChange(() => {
     if (term.hasSelection()) {
