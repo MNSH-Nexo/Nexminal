@@ -222,13 +222,13 @@ function initTerminal() {
     }
   });
 
-  /* --- Paste: button + Ctrl+V / Shift+Insert --- */
+  /* --- Paste: button + Ctrl+V / Shift+Insert ---
+     Ctrl+V / Cmd+V is handled NATIVELY by xterm's hidden textarea (the
+     browser fires a 'paste' event into it), so we must NOT intercept it —
+     reading the clipboard ourselves is blocked, which is what broke paste. */
   $('btn-paste').addEventListener('click', () => pasteText());
   document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
-      e.preventDefault();
-      pasteText();
-    } else if (e.shiftKey && e.key === 'Insert') {
+    if (e.shiftKey && e.key === 'Insert') {
       e.preventDefault();
       pasteText();
     }
@@ -261,20 +261,16 @@ function initTerminal() {
 }
 
 async function pasteText() {
+  /* Focus xterm's hidden textarea first so any native paste lands in it. */
+  try {
+    const ta = term && term.textarea;
+    if (ta && document.activeElement !== ta) ta.focus();
+  } catch (e) {}
   try {
     const t = await navigator.clipboard.readText();
-    if (t) term.paste(t);
-  } catch (e) {
-    /* clipboard permissions denied — fall back to prompt-free via execCommand */
-    const ta = document.createElement('textarea');
-    ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta);
-    ta.focus();
-    document.execCommand('paste');
-    const val = ta.value;
-    ta.remove();
-    if (val) term.paste(val);
-  }
+    if (t) { term.paste(t); return; }
+  } catch (e) { /* clipboard read blocked — fall through to native paste */ }
+  try { document.execCommand('paste'); } catch (e) {}
 }
 
 function toggleFullscreen() {
