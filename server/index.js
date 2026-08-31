@@ -61,7 +61,16 @@ const xtermRoot = path.join(APP_ROOT, 'node_modules', '@xterm');
 app.use('/vendor', express.static(xtermRoot, { index: false }));
 
 // ---------- Frontend static assets (js, css, html) ----------
-app.use('/', express.static(PUBLIC_DIR));
+// index.html is served by serveIndex() below (webpath injected), so disable
+// the automatic "index.html for /" behavior of express.static.
+app.use('/', express.static(PUBLIC_DIR, { index: false }));
+
+function serveIndex(res) {
+  const html = fs
+    .readFileSync(INDEX_HTML, 'utf8')
+    .replace(/\{\{WEBPATH\}\}/g, cfg.webpath);
+  res.type('html').send(html);
+}
 
 function loadPublic() {
   const s = config.load();
@@ -227,7 +236,7 @@ app.post('/api/delete', (req, res) => {
 });
 
 // ---------- Frontend ----------
-app.get('/', (req, res) => res.sendFile(INDEX_HTML));
+app.get('/', (req, res) => serveIndex(res));
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // ---------- Boot ----------

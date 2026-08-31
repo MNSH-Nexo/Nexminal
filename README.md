@@ -61,6 +61,9 @@ On later visits you are logged in automatically via cookie.
 
 ## Manage
 
+- **Terminal command:** run `sudo nexminal` on the server for a management
+  menu — shows your access URL, and lets you change the admin password,
+  the secret webpath, the SSH target, and control the service.
 - **Admin menu** (☰ in the toolbar): change password, change the webpath,
   edit the SSH connection, switch language, or delete the project.
 - Deleting the project clears its config and stops the service.

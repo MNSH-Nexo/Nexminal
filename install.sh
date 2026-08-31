@@ -149,6 +149,17 @@ UNIT
 systemctl daemon-reload
 systemctl enable ${SERVICE} >/dev/null 2>&1 || true
 
+# --- 3b. `nexminal` CLI management command ----------------------
+echo "==> Installing 'nexminal' command"
+cat > /usr/local/bin/nexminal <<CLI
+#!/usr/bin/env bash
+# Nexminal management menu
+export WEBTERM_CONFIG_DIR=${APP_DIR}/data
+export WEBTERM_PORT=${WEBTERM_PORT}
+exec ${NODE_BIN} ${APP_DIR}/server/cli.js "\$@"
+CLI
+chmod +x /usr/local/bin/nexminal
+
 # --- 4. Let's Encrypt (only when a domain is given) ------------
 if [[ -n "${DOMAIN}" ]]; then
   echo "==> Obtaining Let's Encrypt certificate for ${DOMAIN}"
@@ -194,4 +205,7 @@ echo ""
 echo " Open the HTTPS URL. On first visit you will set the"
 echo " admin password and SSH target, then use the terminal."
 echo " (self-signed certs show a browser warning - expected)"
+echo ""
+echo " Run 'sudo nexminal' at any time for the management menu"
+echo " (show URL, change password/webpath/SSH target, service)."
 echo "==========================================================="
