@@ -536,16 +536,27 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 .btn.danger:hover { background: linear-gradient(180deg, #ffa3a3, #ff7d7d); }
 
 /* ============================================================
-   Mobile keybar (Termux-style) — shown only on small screens
+   Mobile/tablet keybar (Termux-style) — shown only on touch screens
    ============================================================ */
 .keybar {
   flex: none;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
-  background: rgba(11, 15, 24, 0.9);
-  border-top: 1px solid var(--border);
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  /* Glassy by default: translucent so the terminal shows through a bit. */
+  background: rgba(9, 13, 22, 0.42);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+/* Progressive enhancement: real frosted blur where the browser supports it.
+   The translucent background above is the always-safe fallback, so slow
+   devices keep the glassy look without paying for constant blurring. */
+@supports (backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px)) {
+  .keybar {
+    -webkit-backdrop-filter: blur(14px) saturate(1.35);
+    backdrop-filter: blur(14px) saturate(1.35);
+    background: rgba(11, 16, 26, 0.32);
+  }
 }
 .keybar-row { display: flex; gap: 6px; }
 .keybar-row .kbtn { flex: 1; }
@@ -555,27 +566,31 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.4px;
-  color: var(--muted);
-  background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-  border-radius: 9px;
-  padding: 11px 4px;
+  color: var(--ink);
+  background: rgba(18, 24, 38, 0.72);
+  border: 1px solid rgba(90, 110, 150, 0.5);
+  border-radius: 10px;
+  padding: 12px 4px;
   cursor: pointer;
-  min-height: 42px;
+  min-height: 46px;
   transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.kbtn:active { transform: translateY(1px); background: var(--surface-3); color: var(--ink); }
+.kbtn:active { transform: translateY(1px); background: rgba(26, 34, 51, 0.95); color: var(--ink); }
 .kbtn.active {
   color: #fff;
   background: linear-gradient(180deg, var(--accent-2), var(--accent));
   border-color: transparent;
-  box-shadow: 0 4px 12px rgba(77, 139, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(77, 139, 255, 0.4);
 }
-.karrow { font-size: 15px; padding: 8px 4px; }
-.kclear { color: var(--danger); border-color: rgba(251, 106, 106, 0.4); }
+.karrow { font-size: 17px; padding: 8px 4px; }
+.kchr { font-size: 16px; font-weight: 700; }
+.kclear { color: var(--danger); border-color: rgba(251, 106, 106, 0.45); }
+.ksess { font-size: 20px; padding: 8px 4px; color: var(--accent-2); }
+.kadd { font-size: 20px; padding: 8px 4px; color: var(--cyan); }
 
 /* ============================================================
    Motion

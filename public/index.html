@@ -106,21 +106,39 @@
       </div>
     </main>
 
-    <!-- Termux-style keybar: only shown on small screens (mobile). -->
+    <!-- Termux-style keybar: shown on touch devices (phones & tablets). -->
     <div id="keybar" class="keybar" hidden>
-      <div class="keybar-row keybar-mod">
-        <button class="kbtn" data-mod="esc" data-kbd="Escape">ESC</button>
-        <button class="kbtn" data-mod="tab" data-kbd="Tab">TAB</button>
+      <div class="keybar-row">
+        <button class="kbtn" data-mod="esc">ESC</button>
+        <button class="kbtn" data-mod="tab">TAB</button>
         <button class="kbtn" data-mod="ctrl">CTRL</button>
         <button class="kbtn" data-mod="alt">ALT</button>
         <button class="kbtn" data-mod="shift">SHIFT</button>
+        <button class="kbtn kchr" data-chr="-">-</button>
       </div>
-      <div class="keybar-row keybar-nav">
+      <div class="keybar-row">
+        <button class="kbtn kchr" data-chr="/">/</button>
+        <button class="kbtn kchr" data-chr="|">|</button>
+        <button class="kbtn kchr" data-chr="~">~</button>
+        <button class="kbtn kchr" data-chr="_">_</button>
+        <button class="kbtn kchr" data-chr=".">.</button>
+        <button class="kbtn kchr" data-chr="\">\</button>
+      </div>
+      <div class="keybar-row">
+        <button class="kbtn ksess" data-sess="prev" title="Previous session">‹</button>
         <button class="kbtn karrow" data-key="up">▲</button>
         <button class="kbtn karrow" data-key="left">◀</button>
         <button class="kbtn karrow" data-key="down">▼</button>
         <button class="kbtn karrow" data-key="right">▶</button>
+        <button class="kbtn ksess" data-sess="next" title="Next session">›</button>
+      </div>
+      <div class="keybar-row">
+        <button class="kbtn" data-key="home">Home</button>
+        <button class="kbtn" data-key="end">End</button>
+        <button class="kbtn" data-key="pgup">PgUp</button>
+        <button class="kbtn" data-key="pgdn">PgDn</button>
         <button class="kbtn kclear" data-key="clear">DEL</button>
+        <button class="kbtn kadd" data-sess="new" title="New terminal">+</button>
       </div>
     </div>
   </section>

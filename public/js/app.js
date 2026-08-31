@@ -365,20 +365,26 @@ function initKeybar() {
     if (b.dataset.mod === 'shift') { toggleMod('shift'); return; }
     if (b.dataset.mod === 'esc') { clearMods(); sendRaw('\x1b'); return; }
     if (b.dataset.mod === 'tab') { clearMods(); sendRaw('\t'); return; }
+    if (b.dataset.chr) { sendWithMods(b.dataset.chr); return; }
     if (b.dataset.key) {
       if (b.dataset.key === 'clear') { clearMods(); term.clear(); return; }
-      sendArrow(b.dataset.key);
+      sendNav(b.dataset.key); return;
     }
+    if (b.dataset.sess === 'prev') { cycleSession(-1); return; }
+    if (b.dataset.sess === 'next') { cycleSession(1); return; }
+    if (b.dataset.sess === 'new') { createSession(); return; }
   });
 }
 
 function updateKeybar() {
   const kb = $('keybar');
   if (!kb) return;
-  // Show only on small screens (phones/tablets in portrait); desktop hides it.
-  const small = window.innerWidth < 700;
-  kb.hidden = !small;
-  if (!small) clearMods();
+  // Show on touch devices (phones & tablets). Coarse pointer catches tablets
+  // even when they are wider than 700px; narrow screens always show it.
+  const touch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  const narrow = window.innerWidth < 1024;
+  kb.hidden = !(touch || narrow);
+  if (kb.hidden) clearMods();
 }
 
 function toggleMod(k) { mods[k] = !mods[k]; updateMods(); }
@@ -398,39 +404,56 @@ function sendInput(data) {
   if (!data) return;
   const active = mods.ctrl || mods.alt || mods.shift;
   if (!active) { sendRaw(data); return; }
-  if (data.length === 1) {
-    if (mods.ctrl) {
-      mods.ctrl = false;
-      const l = data.toLowerCase();
-      const cc = l.charCodeAt(0);
-      if (cc >= 97 && cc <= 122) { sendRaw(String.fromCharCode(cc - 96)); } // a→^A … z→^Z
-      else { sendRaw(data); } // Ctrl+non-letter: pass through
-    } else if (mods.alt) {
-      mods.alt = false;
-      sendRaw('\x1b' + data); // Alt+letter = ESC then letter
-    } else if (mods.shift) {
-      mods.shift = false;
-      sendRaw(data.toUpperCase());
-    }
-    updateMods();
-    return;
-  }
+  if (data.length === 1) { sendWithMods(data); return; }
   // Multi-char (Enter, Backspace, …): drop latched modifiers and pass through.
   clearMods();
   sendRaw(data);
 }
 
-/* Arrow keys from the keybar. CTRL/ALT latched → word/line navigation. */
-function sendArrow(key) {
-  const word = mods.ctrl || mods.alt;
+/* Apply latched modifiers to a single character (from the physical keyboard
+   or a keybar symbol key) and send the resulting sequence. */
+function sendWithMods(ch) {
+  if (mods.ctrl) {
+    mods.ctrl = false;
+    const cc = ch.toLowerCase().charCodeAt(0);
+    if (cc >= 97 && cc <= 122) { sendRaw(String.fromCharCode(cc - 96)); } // a→^A … z→^Z
+    else { sendRaw(ch); } // Ctrl+non-letter: pass through
+  } else if (mods.alt) {
+    mods.alt = false;
+    sendRaw('\x1b' + ch); // Alt+key = ESC then key
+  } else if (mods.shift) {
+    mods.shift = false;
+    sendRaw(ch.toUpperCase());
+  } else {
+    sendRaw(ch);
+  }
+  updateMods();
+}
+
+/* Navigation keys from the keybar. CTRL/ALT latched → word/line/page jumps. */
+function sendNav(key) {
+  const m = mods.ctrl || mods.alt;
   const map = {
-    up: word ? '\x1b[1;5A' : '\x1b[A',
-    down: word ? '\x1b[1;5B' : '\x1b[B',
-    right: word ? '\x1b[1;5C' : '\x1b[C',
-    left: word ? '\x1b[1;5D' : '\x1b[D'
+    up: m ? '\x1b[1;5A' : '\x1b[A',
+    down: m ? '\x1b[1;5B' : '\x1b[B',
+    right: m ? '\x1b[1;5C' : '\x1b[C',
+    left: m ? '\x1b[1;5D' : '\x1b[D',
+    home: m ? '\x1b[1;5H' : '\x1b[H',
+    end: m ? '\x1b[1;5F' : '\x1b[F',
+    pgup: m ? '\x1b[5;5~' : '\x1b[5~',
+    pgdn: m ? '\x1b[6;5~' : '\x1b[6~'
   };
-  if (word) clearMods();
-  sendRaw(map[key]);
+  if (m) clearMods();
+  sendRaw(map[key] || '');
+}
+
+/* Cycle to the previous/next open session — a direct, reliable alternative to
+   Termux's swipe-open session drawer (which users report as finicky). */
+function cycleSession(dir) {
+  if (!sessions.length) return;
+  const idx = sessions.findIndex((s) => s.id === activeId);
+  const n = sessions[(idx + dir + sessions.length) % sessions.length];
+  if (n && n.id !== activeId) attach(n.id);
 }
 
 async function pasteText() {
