@@ -12,7 +12,6 @@
   <section id="screen-setup" class="screen" hidden>
     <form id="setup-form" class="card">
       <div class="card-brand">
-        <div class="brand-mark">&gt;_</div>
         <div class="logo">Nex<span class="dot">minal</span></div>
       </div>
       <h1 id="setup-title" class="title">تنظیم اولیه</h1>
@@ -37,7 +36,6 @@
   <section id="screen-login" class="screen" hidden>
     <form id="login-form" class="card">
       <div class="card-brand">
-        <div class="brand-mark">&gt;_</div>
         <div class="logo">Nex<span class="dot">minal</span></div>
       </div>
       <h1 class="title" id="login-title">ورود</h1>
@@ -54,19 +52,37 @@
   <section id="screen-term" class="screen" hidden>
     <header class="topbar">
       <div class="brand">
-        <div class="brand-mark">N</div>
         <span class="logo-sm">Nex<span class="dot">minal</span></span>
         <span id="conn-status" class="badge">—</span>
       </div>
       <div class="tools">
-        <button class="icon-btn" id="btn-copy" title="Copy selection">⧉ Copy</button>
-        <button class="icon-btn" id="btn-paste" title="Paste">📋 Paste</button>
-        <button class="icon-btn" id="btn-reconnect" title="Reconnect">↻ Reconnect</button>
-        <button class="icon-btn" id="btn-font-down" title="Smaller">A−</button>
-        <button class="icon-btn" id="btn-font-up" title="Larger">A+</button>
-        <button class="icon-btn" id="btn-fullscreen" title="Fullscreen">⛶</button>
+        <button class="icon-btn" id="btn-copy" title="Copy selection">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          <span>Copy</span>
+        </button>
+        <button class="icon-btn" id="btn-paste" title="Paste">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6a1 1 0 0 0 1-1V2H8v1a1 1 0 0 0 1 1z"/></svg>
+          <span>Paste</span>
+        </button>
+        <button class="icon-btn" id="btn-reconnect" title="Reconnect">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/></svg>
+          <span>Reconnect</span>
+        </button>
+        <button class="icon-btn" id="btn-font-down" title="Smaller">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21l6-14 6 14"/><path d="M7 15h6"/></svg>
+          <span>−</span>
+        </button>
+        <button class="icon-btn" id="btn-font-up" title="Larger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21l6-14 6 14"/><path d="M7 15h6"/></svg>
+          <span>+</span>
+        </button>
+        <button class="icon-btn" id="btn-fullscreen" title="Fullscreen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5"/><path d="M21 8V3h-5"/><path d="M3 16v5h5"/><path d="M16 21h5v-5"/></svg>
+        </button>
         <button class="icon-btn" id="btn-lang" title="Language">EN/FA</button>
-        <button class="icon-btn accent" id="btn-menu" title="Menu">☰</button>
+        <button class="icon-btn accent" id="btn-menu" title="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
       </div>
     </header>
     <main class="term-wrap">
@@ -84,7 +100,9 @@
   <aside id="menu" class="drawer" hidden>
     <div class="drawer-head">
       <h2 id="menu-title">مدیریت</h2>
-      <button class="icon-btn" id="menu-close">✕</button>
+      <button class="icon-btn" id="menu-close" title="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>
+      </button>
     </div>
     <div class="drawer-body">
       <div class="group" id="status-card">
