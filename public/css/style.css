@@ -55,8 +55,7 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-body { display: flex; flex-direction: column; overflow: hidden; }
-.screen.centered { overflow: auto; }
+body { display: flex; flex-direction: column; }
 
 ::selection { background: var(--accent-soft); color: var(--ink); }
 
@@ -278,8 +277,8 @@ input:focus, .in:focus { border-color: var(--accent); background: rgba(7, 10, 18
   overflow: hidden;
   background: linear-gradient(160deg, rgba(10, 13, 22, 0.85), rgba(6, 8, 14, 0.95));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow-md);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* NOTE: no backdrop-filter here — the terminal repaints constantly and a
+     blurred backdrop re-composites every frame, causing text shimmer + lag. */
 }
 .term-wrap::before {
   content: "";
