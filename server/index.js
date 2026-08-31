@@ -8,6 +8,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const config = require('./config');
 const auth = require('./auth');
+const sessions = require('./sessions');
 const { attachWSServer } = require('./ws');
 
 const cfg = config.load();
@@ -221,6 +222,21 @@ app.post('/api/language', (req, res) => {
   cfg.language = lang;
   config.save(cfg);
   res.json({ ok: true, language: cfg.language });
+});
+
+// ---------- Persistent terminal sessions ----------
+app.get('/api/sessions', (req, res) => {
+  res.json({ ok: true, sessions: sessions.list() });
+});
+
+app.post('/api/sessions', (req, res) => {
+  const s = sessions.create();
+  res.json({ ok: true, id: s.id, number: s.number, color: s.color, host: s.host, user: s.user });
+});
+
+app.delete('/api/sessions/:id', (req, res) => {
+  const removed = sessions.remove(req.params.id);
+  res.json({ ok: true, removed });
 });
 
 app.post('/api/delete', (req, res) => {

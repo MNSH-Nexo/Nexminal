@@ -2,7 +2,8 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#070a12" />
   <title>Nexminal</title>
   <link rel="stylesheet" href="{{WEBPATH}}/vendor/xterm/css/xterm.css" />
   <link rel="stylesheet" href="{{WEBPATH}}/css/style.css" />
@@ -14,12 +15,12 @@
       <div class="card-brand">
         <div class="logo">Nex<span class="dot">minal</span></div>
       </div>
-      <h1 id="setup-title" class="title">تنظیم اولیه</h1>
-      <p id="setup-desc" class="desc">رمز عبور مدیریت را تعیین کنید تا دفعات بعد خودکار وارد شوید.</p>
-      <label class="field"><span id="setup-pass-label">رمز عبور</span>
+      <h1 id="setup-title" class="title" data-i18n="setupTitle">تنظیم اولیه</h1>
+      <p id="setup-desc" class="desc" data-i18n="setupDesc">رمز عبور مدیریت را تعیین کنید تا دفعات بعد خودکار وارد شوید.</p>
+      <label class="field"><span id="setup-pass-label" data-i18n="setupPassLabel">رمز عبور مدیریت</span>
         <input type="password" id="setup-pass" autocomplete="new-password" required minlength="6" />
       </label>
-      <label class="field"><span id="setup-ssh-label">SSH مقصد (پیش‌فرض: خود سرور)</span>
+      <label class="field"><span id="setup-ssh-label" data-i18n="setupSshLabel">اتصال SSH (پیش‌فرض: خود سرور)</span>
         <div class="row">
           <input type="text" id="setup-host" value="127.0.0.1" placeholder="127.0.0.1" />
           <input type="number" id="setup-port" value="22" style="max-width:80px" />
@@ -28,7 +29,7 @@
         <input type="password" id="setup-sshpass" placeholder="SSH password" style="margin-top:8px" autocomplete="off" />
       </label>
       <p id="setup-error" class="error" hidden></p>
-      <button type="submit" class="btn primary" id="setup-btn">ایجاد و ورود</button>
+      <button type="submit" class="btn primary" id="setup-btn" data-i18n="setupBtn">ایجاد و ورود</button>
     </form>
   </section>
 
@@ -38,13 +39,13 @@
       <div class="card-brand">
         <div class="logo">Nex<span class="dot">minal</span></div>
       </div>
-      <h1 class="title" id="login-title">ورود</h1>
-      <p class="desc" id="login-desc">رمز عبور مدیریت را وارد کنید.</p>
-      <label class="field"><span id="login-pass-label">رمز عبور</span>
+      <h1 class="title" id="login-title" data-i18n="loginTitle">ورود</h1>
+      <p class="desc" id="login-desc" data-i18n="loginDesc">رمز عبور مدیریت را وارد کنید.</p>
+      <label class="field"><span id="login-pass-label" data-i18n="loginPassLabel">رمز عبور</span>
         <input type="password" id="login-pass" autocomplete="current-password" required />
       </label>
       <p id="login-error" class="error" hidden></p>
-      <button type="submit" class="btn primary" id="login-btn">ورود</button>
+      <button type="submit" class="btn primary" id="login-btn" data-i18n="loginBtn">ورود</button>
     </form>
   </section>
 
@@ -56,35 +57,45 @@
         <span id="conn-status" class="badge">—</span>
       </div>
       <div class="tools">
-        <button class="icon-btn" id="btn-copy" title="Copy selection">
+        <button class="icon-btn" id="btn-copy" title="Copy" data-i18n-title="copy">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-          <span>Copy</span>
+          <span data-i18n="copy">Copy</span>
         </button>
-        <button class="icon-btn" id="btn-paste" title="Paste">
+        <button class="icon-btn" id="btn-paste" title="Paste" data-i18n-title="paste">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6a1 1 0 0 0 1-1V2H8v1a1 1 0 0 0 1 1z"/></svg>
-          <span>Paste</span>
+          <span data-i18n="paste">Paste</span>
         </button>
-        <button class="icon-btn" id="btn-reconnect" title="Reconnect">
+        <button class="icon-btn" id="btn-reconnect" title="Reconnect" data-i18n-title="reconnect">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/></svg>
-          <span>Reconnect</span>
+          <span data-i18n="reconnect">Reconnect</span>
         </button>
-        <button class="icon-btn" id="btn-font-down" title="Smaller">
+        <span class="tools-sep"></span>
+        <button class="icon-btn" id="btn-font-down" title="Smaller" data-i18n-title="fontDown">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21l6-14 6 14"/><path d="M7 15h6"/></svg>
-          <span>−</span>
+          <span data-i18n="fontA">A</span>
         </button>
-        <button class="icon-btn" id="btn-font-up" title="Larger">
+        <button class="icon-btn" id="btn-font-up" title="Larger" data-i18n-title="fontUp">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21l6-14 6 14"/><path d="M7 15h6"/></svg>
-          <span>+</span>
+          <span data-i18n="fontA">A</span>
         </button>
-        <button class="icon-btn" id="btn-fullscreen" title="Fullscreen">
+        <button class="icon-btn" id="btn-fullscreen" title="Fullscreen" data-i18n-title="fullscreen">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5"/><path d="M21 8V3h-5"/><path d="M3 16v5h5"/><path d="M16 21h5v-5"/></svg>
         </button>
-        <button class="icon-btn" id="btn-lang" title="Language">EN/FA</button>
-        <button class="icon-btn accent" id="btn-menu" title="Menu">
+        <button class="icon-btn lang" id="btn-lang" title="Language" data-i18n-title="language"></button>
+        <button class="icon-btn accent" id="btn-menu" title="Menu" data-i18n-title="menu">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
         </button>
       </div>
     </header>
+
+    <div class="session-bar">
+      <div class="session-tabs" id="session-tabs" role="tablist"></div>
+      <button class="icon-btn session-add" id="btn-add-session" title="New terminal" data-i18n-title="newSession">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span data-i18n="newSession">New</span>
+      </button>
+    </div>
+
     <main class="term-wrap">
       <div id="term"></div>
       <div id="term-mask" class="term-mask" hidden>
@@ -99,59 +110,74 @@
   <!-- MENU / ADMIN -->
   <aside id="menu" class="drawer" hidden>
     <div class="drawer-head">
-      <h2 id="menu-title">مدیریت</h2>
-      <button class="icon-btn" id="menu-close" title="Close">
+      <h2 id="menu-title" data-i18n="menuTitle">مدیریت</h2>
+      <button class="icon-btn" id="menu-close" title="Close" data-i18n-title="close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>
       </button>
     </div>
     <div class="drawer-body">
       <div class="group" id="status-card">
-        <h3 id="status-title">وضعیت سرور</h3>
+        <h3 id="status-title" data-i18n="statusTitle">وضعیت سرور</h3>
         <div class="kv"><span id="st-hostname"></span><span id="st-platform"></span></div>
         <div class="kv"><span id="st-uptime"></span><span id="st-load"></span></div>
         <div class="kv"><span id="st-ssh"></span><span id="st-ssl"></span></div>
       </div>
 
       <div class="group">
-        <h3 id="sec-pass-title">تغییر رمز عبور</h3>
-        <input type="password" id="cur-pass" class="in" placeholder="رمز فعلی" autocomplete="off" />
-        <input type="password" id="new-pass" class="in" placeholder="رمز جدید" autocomplete="off" />
-        <button class="btn" id="btn-change-pass">ذخیره رمز</button>
+        <h3 id="sec-pass-title" data-i18n="secPassTitle">تغییر رمز عبور</h3>
+        <input type="password" id="cur-pass" class="in" placeholder="رمز فعلی" data-i18n-placeholder="curPass" autocomplete="off" />
+        <input type="password" id="new-pass" class="in" placeholder="رمز جدید" data-i18n-placeholder="newPass" autocomplete="off" />
+        <button class="btn" id="btn-change-pass" data-i18n="savePass">ذخیره رمز</button>
         <p class="mini-msg" id="msg-pass" hidden></p>
       </div>
 
       <div class="group">
-        <h3 id="sec-path-title">مسیر (Webpath)</h3>
-        <div class="kv"><span id="cur-path"></span><span id="cur-path-val"></span></div>
-        <input type="text" id="new-path" class="in" placeholder="یک مسیر دلخواه بنویسید یا رندوم بسازید" autocomplete="off" />
+        <h3 id="sec-path-title" data-i18n="secPathTitle">مسیر (Webpath)</h3>
+        <div class="kv"><span id="cur-path" data-i18n="curPath">مسیر فعلی</span><span id="cur-path-val"></span></div>
+        <input type="text" id="new-path" class="in" placeholder="یک مسیر دلخواه بنویسید یا رندوم بسازید" data-i18n-placeholder="pathPlaceholder" autocomplete="off" />
         <div class="btn-row">
-          <button class="btn" id="btn-set-path">ذخیره مسیر</button>
-          <button class="btn" id="btn-random-path">ساخت رندوم</button>
+          <button class="btn" id="btn-set-path" data-i18n="savePath">ذخیره مسیر</button>
+          <button class="btn" id="btn-random-path" data-i18n="randomPath">ساخت رندوم</button>
         </div>
         <p class="mini-msg warn" id="msg-path"></p>
       </div>
 
       <div class="group">
-        <h3 id="sec-ssh-title">اتصال SSH</h3>
+        <h3 id="sec-ssh-title" data-i18n="secSshTitle">اتصال SSH</h3>
         <div class="row">
           <input type="text" id="ssh-host" class="in" placeholder="host" autocomplete="off" />
-          <input type="number" id="ssh-port" class="in" placeholder="port" style="max-width:80px" />
+          <input type="number" id="ssh-port" class="in" placeholder="port" style="max-width:80px" autocomplete="off" />
         </div>
         <input type="text" id="ssh-user" class="in" placeholder="username" autocomplete="off" />
         <input type="password" id="ssh-pass" class="in" placeholder="SSH password" autocomplete="off" />
-        <button class="btn" id="btn-save-ssh">ذخیره اتصال</button>
+        <button class="btn" id="btn-save-ssh" data-i18n="saveSsh">ذخیره اتصال</button>
         <p class="mini-msg" id="msg-ssh" hidden></p>
       </div>
 
       <div class="group">
-        <h3 id="sec-lang-title">زبان</h3>
+        <h3 id="sec-lang-title" data-i18n="secLangTitle">زبان</h3>
         <div class="btn-row">
-          <button class="btn" id="btn-lang-fa">فارسی</button>
-          <button class="btn" id="btn-lang-en">English</button>
+          <button class="btn" id="btn-lang-fa" data-i18n="langFa">فارسی</button>
+          <button class="btn" id="btn-lang-en" data-i18n="langEn">English</button>
         </div>
       </div>
     </div>
   </aside>
+
+  <!-- Confirm delete session dialog -->
+  <div id="confirm" class="confirm" hidden>
+    <div class="confirm-card">
+      <div class="confirm-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+      </div>
+      <h3 id="confirm-title" data-i18n="deleteTitle">حذف ترمینال</h3>
+      <p id="confirm-desc" data-i18n="deleteDesc">این ترمینال و تمام خروجی آن بسته و حذف میشود.</p>
+      <div class="confirm-actions">
+        <button class="btn" id="confirm-cancel" data-i18n="cancel">انصراف</button>
+        <button class="btn danger" id="confirm-ok" data-i18n="deleteBtn">حذف</button>
+      </div>
+    </div>
+  </div>
 
   <div id="toast" class="toast" hidden></div>
   <div id="overlay" class="overlay" hidden></div>

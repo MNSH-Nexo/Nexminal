@@ -254,6 +254,83 @@ input:focus, .in:focus { border-color: var(--accent); background: rgba(7, 10, 18
   box-shadow: 0 6px 16px rgba(77, 139, 255, 0.3);
 }
 .icon-btn.accent:hover { background: linear-gradient(180deg, #8fc0ff, #5c97ff); color: #fff; }
+.tools-sep { width: 1px; height: 20px; background: var(--border); margin: 0 2px; flex: none; }
+
+/* ============================================================
+   Session tabs
+   ============================================================ */
+.session-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 0;
+}
+.session-tabs {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.session-tabs::-webkit-scrollbar { height: 6px; }
+.session-tabs::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; }
+.session-add { flex: none; margin-bottom: 10px; }
+
+.sess-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  max-width: 230px;
+  background: rgba(18, 24, 38, 0.55);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 12px;
+  padding: 7px 12px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.sess-tab::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--c);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.sess-tab:hover { border-color: var(--border-strong); color: var(--ink); }
+.sess-tab.active {
+  background: rgba(26, 34, 51, 0.9);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--ink);
+}
+.sess-tab.active::before { opacity: 1; }
+.sess-tab .dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--c);
+  flex: none;
+  box-shadow: 0 0 8px var(--c);
+}
+.sess-num { font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.3px; }
+.sess-host { font-size: 11px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sess-tab.active .sess-host { color: var(--muted); }
+.sess-del {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 6px;
+  color: var(--faint); flex: none; margin-inline-start: 2px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.sess-del svg { width: 12px; height: 12px; }
+.sess-del:hover { background: rgba(251, 106, 106, 0.15); color: var(--danger); }
 
 /* ============================================================
    Terminal
@@ -407,6 +484,49 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 .toast.ok { border-color: rgba(52, 211, 153, 0.5); color: var(--ok); }
 .toast.err { border-color: rgba(251, 106, 106, 0.5); color: var(--danger); }
 
+/* Empty-state "create" button in the terminal mask */
+.mask-inner .empty-start { margin-top: 18px; }
+
+/* ============================================================
+   Confirm dialog (delete session)
+   ============================================================ */
+.confirm {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+  background: rgba(3, 5, 10, 0.65);
+  padding: 20px;
+}
+.confirm[hidden] { display: none; }
+.confirm-card {
+  width: min(92vw, 360px);
+  background: linear-gradient(180deg, rgba(24, 30, 44, 0.97), rgba(12, 16, 26, 0.98));
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 26px 24px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: riseIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.confirm-icon {
+  width: 52px; height: 52px; margin: 0 auto 16px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(251, 106, 106, 0.14);
+  color: var(--danger);
+}
+.confirm-icon svg { width: 26px; height: 26px; }
+.confirm-card h3 { margin: 0 0 8px; font-size: 18px; font-weight: 700; }
+.confirm-card p { margin: 0 0 22px; color: var(--muted); font-size: 13.5px; line-height: 1.6; }
+.confirm-actions { display: flex; gap: 10px; }
+.confirm-actions .btn { flex: 1; }
+.btn.danger {
+  background: linear-gradient(180deg, #ff8a8a, #fb6a6a);
+  border-color: transparent; color: #fff;
+  box-shadow: 0 8px 20px rgba(251, 106, 106, 0.3);
+}
+.btn.danger:hover { background: linear-gradient(180deg, #ffa3a3, #ff7d7d); }
+
 /* ============================================================
    Motion
    ============================================================ */
@@ -433,10 +553,28 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 /* ============================================================
    Responsive
    ============================================================ */
+@media (max-width: 860px) {
+  .sess-tab { max-width: 200px; }
+}
+
 @media (max-width: 640px) {
-  .topbar { padding: 8px 12px; }
-  .term-wrap { margin: 8px; }
+  .topbar { padding: 8px 10px; }
+  .session-bar { padding: 8px 10px 0; }
+  .session-tabs { padding-bottom: 8px; }
+  .sess-tab { padding: 6px 10px; font-size: 12px; max-width: 172px; }
+  .session-add { margin-bottom: 8px; }
+  .term-wrap { margin: 8px 10px 12px; }
   .tools { gap: 5px; }
-  .icon-btn { padding: 7px 9px; font-size: 12px; }
-  .card { padding: 26px 22px; }
+  .icon-btn { padding: 8px 9px; font-size: 12px; min-height: 40px; min-width: 38px; justify-content: center; }
+  /* Icon-only toolbar on small screens (labels hidden, generous hit area). */
+  .icon-btn > span:not(.sess-num):not(.lang) { display: none; }
+  .card { padding: 26px 20px; }
+  .drawer { width: 100vw; }
+  .toast { left: 16px; right: 16px; transform: none; text-align: center; }
+  .toast.show { transform: none; }
+}
+@media (max-width: 420px) {
+  .brand .logo-sm { font-size: 13px; }
+  .badge { padding: 4px 10px; font-size: 10px; }
+  .tools-sep { display: none; }
 }

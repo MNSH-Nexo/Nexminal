@@ -1,8 +1,8 @@
 'use strict';
-const { Client } = require('ssh2');
 const WebSocket = require('ws');
 const { isValid } = require('./auth');
 const { load } = require('./config');
+const sessions = require('./sessions');
 
 function parseCookie(str) {
   const out = {};
@@ -13,8 +13,8 @@ function parseCookie(str) {
   return out;
 }
 
-// Attach a WebSocket endpoint at <webpath>/ws. Only authenticated sessions
-// are allowed to upgrade. Binary messages prefixed with '\u0000' carry a JSON
+// Attach a WebSocket endpoint at <webpath>/ws?session=<id>. Only authenticated
+// sessions may upgrade. Binary messages prefixed with '\u0000' carry a JSON
 // {rows, cols} resize payload; everything else is terminal input.
 function attachWSServer(server) {
   const wss = new WebSocket.Server({ noServer: true });
@@ -35,65 +35,31 @@ function attachWSServer(server) {
     });
   });
 
-  wss.on('connection', (ws) => {
-    const conn = new Client();
-    let stream = null;
+  wss.on('connection', (ws, req) => {
+    let u;
+    try { u = new URL(req.url, 'http://localhost'); } catch (e) { u = null; }
+    const sid = u ? u.searchParams.get('session') : null;
 
-    const endAll = () => {
-      if (stream) { try { stream.end(); } catch (e) {} stream = null; }
-      try { conn.end(); } catch (e) {}
-      if (ws.readyState === WebSocket.OPEN) ws.close();
-    };
-
-    conn.on('ready', () => {
-      const s = getCfg().ssh;
-      conn.shell((err, sh) => {
-        if (err) {
-          if (ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ err: 'shell: ' + err.message })); }
-          endAll();
-          return;
-        }
-        stream = sh;
-        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ ready: true }));
-        sh.on('data', (d) => {
-          if (ws.readyState === WebSocket.OPEN) ws.send(d.toString('utf8'));
-        });
-        sh.on('close', () => { endAll(); });
-        sh.on('error', () => { endAll(); });
-      });
-    });
-
-    conn.on('error', (err) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ err: 'connect: ' + err.message }));
-      }
-      endAll();
-    });
+    // Without a session id we create a brand-new session and attach to it.
+    let sess;
+    if (sid) {
+      sess = sessions.attach(ws, sid);
+    } else {
+      sess = sessions.create();
+      sessions.attach(ws, sess.id);
+    }
+    if (!sess) return; // attach already sent an error and closed the socket.
 
     ws.on('message', (raw) => {
       const str = raw.toString('utf8');
       if (str.charCodeAt(0) === 0) {
-        if (stream) {
-          try {
-            const dims = JSON.parse(str.slice(1));
-            stream.setWindow(dims.rows, dims.cols, 0, 0);
-          } catch (e) {}
-        }
+        try {
+          const dims = JSON.parse(str.slice(1));
+          sessions.resize(sess.id, dims);
+        } catch (e) {}
         return;
       }
-      if (stream) stream.write(str);
-    });
-
-    ws.on('close', () => endAll());
-    ws.on('error', () => endAll());
-
-    const s = getCfg().ssh;
-    conn.connect({
-      host: s.host || '127.0.0.1',
-      port: Number(s.port || 22),
-      username: s.username || 'root',
-      password: s.password || undefined,
-      readyTimeout: 12000
+      sessions.write(sess.id, str);
     });
   });
 

@@ -26,8 +26,15 @@ const I18N = {
     newPass: 'رمز جدید',
     savePass: 'ذخیره رمز',
     secPathTitle: 'مسیر (Webpath)',
+    curPath: 'مسیر فعلی',
+    pathPlaceholder: 'یک مسیر دلخواه بنویسید یا رندوم بسازید',
+    savePath: 'ذخیره مسیر',
+    randomPath: 'ساخت رندوم',
     secSshTitle: 'اتصال SSH',
+    saveSsh: 'ذخیره اتصال',
     secLangTitle: 'زبان',
+    langFa: 'فارسی',
+    langEn: 'English',
     wrongPass: 'رمز فعلی اشتباه است.',
     saved: 'ذخیره شد.',
     pathChanged: 'مسیر تغییر کرد. در حال انتقال…',
@@ -40,7 +47,26 @@ const I18N = {
     reconnect: 'اتصال دوباره',
     copied: 'کپی شد.',
     copiedAutomatic: 'متن انتخاب‌شده کپی شد.',
-    menu: 'منو'
+    menu: 'منو',
+    copy: 'کپی',
+    paste: 'چسباندن',
+    fontDown: 'کوچک‌کردن متن',
+    fontUp: 'بزرگ‌کردن متن',
+    fontA: 'A',
+    fullscreen: 'تمام‌صفحه',
+    language: 'زبان',
+    newSession: 'ترمینال جدید',
+    close: 'بستن',
+    deleteTitle: 'حذف ترمینال',
+    deleteDesc: 'این ترمینال و تمام خروجی آن بسته و حذف می‌شود.',
+    cancel: 'انصراف',
+    deleteBtn: 'حذف',
+    deleteSess: 'حذف ترمینال',
+    deleteFail: 'حذف انجام نشد.',
+    noSessions: 'هیچ ترمینالی باز نیست',
+    noSessionsDesc: 'برای شروع، یک ترمینال جدید بسازید.',
+    startTerminal: 'ساخت ترمینال جدید',
+    sessionErr: 'خطا در اتصال'
   },
   en: {
     dir: 'ltr', lang: 'en',
@@ -64,8 +90,15 @@ const I18N = {
     newPass: 'New password',
     savePass: 'Save password',
     secPathTitle: 'Path (webpath)',
+    curPath: 'Current path',
+    pathPlaceholder: 'Type a custom path or generate a random one',
+    savePath: 'Save path',
+    randomPath: 'Random',
     secSshTitle: 'SSH connection',
+    saveSsh: 'Save connection',
     secLangTitle: 'Language',
+    langFa: 'فارسی',
+    langEn: 'English',
     wrongPass: 'Current password is wrong.',
     saved: 'Saved.',
     pathChanged: 'Path changed. Redirecting…',
@@ -78,7 +111,26 @@ const I18N = {
     reconnect: 'Reconnect',
     copied: 'Copied.',
     copiedAutomatic: 'Selection copied.',
-    menu: 'Menu'
+    menu: 'Menu',
+    copy: 'Copy',
+    paste: 'Paste',
+    fontDown: 'Smaller text',
+    fontUp: 'Larger text',
+    fontA: 'A',
+    fullscreen: 'Fullscreen',
+    language: 'Language',
+    newSession: 'New terminal',
+    close: 'Close',
+    deleteTitle: 'Delete terminal',
+    deleteDesc: 'This terminal and all its output will be closed and removed.',
+    cancel: 'Cancel',
+    deleteBtn: 'Delete',
+    deleteSess: 'Delete terminal',
+    deleteFail: 'Delete failed.',
+    noSessions: 'No open terminals',
+    noSessionsDesc: 'Create a new terminal to get started.',
+    startTerminal: 'Create new terminal',
+    sessionErr: 'Connection error'
   }
 };
 
@@ -93,19 +145,27 @@ function setLang(lang) {
   T = I18N[lang] || I18N.fa;
   document.documentElement.lang = T.lang;
   document.documentElement.dir = T.dir;
-  const m = {
-    'setup-title': 'setupTitle', 'setup-desc': 'setupDesc',
-    'setup-pass-label': 'setupPassLabel', 'setup-ssh-label': 'setupSshLabel',
-    'setup-btn': 'setupBtn', 'login-title': 'loginTitle', 'login-desc': 'loginDesc',
-    'login-pass-label': 'loginPassLabel', 'login-btn': 'loginBtn',
-    'menu-title': 'menuTitle', 'status-title': 'statusTitle',
-    'sec-pass-title': 'secPassTitle', 'sec-path-title': 'secPathTitle',
-    'sec-ssh-title': 'secSshTitle', 'sec-lang-title': 'secLangTitle'
-  };
-  Object.keys(m).forEach((id) => { if ($(id)) $(id).textContent = T[m[id]]; });
-  $('cur-pass').placeholder = T.curPass;
-  $('new-pass').placeholder = T.newPass;
-  $('btn-change-pass').textContent = T.savePass;
+  // Static [data-i18n] texts.
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.textContent = T[el.dataset.i18n] || el.textContent;
+  });
+  // Placeholders.
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    el.placeholder = T[el.dataset.i18nPlaceholder] || el.placeholder;
+  });
+  // Titles / tooltips.
+  document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    el.title = T[el.dataset.i18nTitle] || el.title;
+  });
+  // Language toggle button shows the OTHER language code.
+  const langBtn = $('btn-lang');
+  if (langBtn) langBtn.textContent = lang === 'fa' ? 'EN' : 'FA';
+  // Dynamic bits that depend on current screen.
+  if (emptyBtn) emptyBtn.textContent = T.startTerminal;
+  if (sessions.length === 0 && !activeId && $('screen-term').classList.contains('visible')) {
+    $('mask-msg').textContent = T.noSessionsDesc;
+  }
+  renderTabs();
 }
 
 async function post(url, body) {
@@ -127,7 +187,6 @@ function toast(msg, kind) {
   clearTimeout(el._t);
   el._t = setTimeout(() => {
     el.classList.remove('show');
-    el.addEventListener('transitionend', () => { el.hidden = true; }, { once: true });
     setTimeout(() => { el.hidden = true; }, 300);
   }, 2400);
 }
@@ -149,7 +208,7 @@ async function boot() {
   setLang(state.language || 'fa');
   if (!state.initialized) { showScreen('setup'); bindSetup(); }
   else if (!state.authed) { showScreen('login'); bindLogin(); }
-  else { showScreen('term'); initTerminal(); initAdmin(); }
+  else { showScreen('term'); initTerminal(); initAdmin(); initSessions(); }
 }
 
 /* ------------------------------------------------------------------ */
@@ -192,12 +251,15 @@ function bindLogin() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Terminal                                                           */
+/* Terminal — one shared xterm instance, attached to a session        */
 /* ------------------------------------------------------------------ */
 let term = null;
 let fit = null;
 let ws = null;
-let wantOpen = true;
+let wsToken = 0;
+let sessions = [];
+let activeId = null;
+let emptyBtn = null;
 
 function initTerminal() {
   term = new Terminal({
@@ -213,14 +275,11 @@ function initTerminal() {
   term.open($('term'));
   fit.fit();
 
-  /* Send keystrokes to the server. Registered ONCE here so reconnects never
-     stack duplicate listeners (which would double every typed character). */
+  /* Keystrokes → the active session. Registered ONCE so reconnects never
+     stack duplicate listeners. */
   term.onData((data) => { if (ws && ws.readyState === 1) ws.send(data); });
 
-  /* Intercept Ctrl+V / Cmd+V BEFORE xterm's own key handler. xterm would
-     otherwise swallow it and send a literal ^V control char. Returning false
-     tells xterm to skip the key, so the browser performs its native paste
-     into xterm's textarea, which xterm then sends to the shell. */
+  /* Native paste support: let xterm's hidden textarea handle Ctrl+V. */
   term.attachCustomKeyEventHandler((e) => {
     if (e.type === 'keydown' && (e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
       return false;
@@ -228,7 +287,7 @@ function initTerminal() {
     return true;
   });
 
-  /* --- Bitvise-style copy: auto-copy on selection --- */
+  /* Bitvise-style auto-copy on selection. */
   term.onSelectionChange(() => {
     if (term.hasSelection()) {
       navigator.clipboard.writeText(term.getSelection())
@@ -237,16 +296,10 @@ function initTerminal() {
     }
   });
 
-  /* --- Paste: button + Ctrl+V / Shift+Insert ---
-     Ctrl+V / Cmd+V is handled NATIVELY by xterm's hidden textarea (the
-     browser fires a 'paste' event into it), so we must NOT intercept it —
-     reading the clipboard ourselves is blocked, which is what broke paste. */
+  /* Paste button + Shift+Insert. */
   $('btn-paste').addEventListener('click', () => pasteText());
   document.addEventListener('keydown', (e) => {
-    if (e.shiftKey && e.key === 'Insert') {
-      e.preventDefault();
-      pasteText();
-    }
+    if (e.shiftKey && e.key === 'Insert') { e.preventDefault(); pasteText(); }
   });
   $('btn-copy').addEventListener('click', () => {
     if (term.hasSelection()) {
@@ -255,14 +308,14 @@ function initTerminal() {
     }
   });
 
-  /* --- Resize handling --- */
+  /* Resize handling. */
   const onResize = () => { if (fit) fit.fit(); };
   window.addEventListener('resize', onResize);
   const ro = new ResizeObserver(() => fit && fit.fit());
   ro.observe($('term'));
 
-  /* --- Toolbar --- */
-  $('btn-reconnect').addEventListener('click', () => { wantOpen = true; connect(); });
+  /* Toolbar. */
+  $('btn-reconnect').addEventListener('click', () => { if (activeId) attach(activeId); });
   $('btn-font-up').addEventListener('click', () => { term.options.fontSize = Math.min(28, (term.options.fontSize || 14) + 1); onResize(); });
   $('btn-font-down').addEventListener('click', () => { term.options.fontSize = Math.max(9, (term.options.fontSize || 14) - 1); onResize(); });
   $('btn-fullscreen').addEventListener('click', toggleFullscreen);
@@ -272,11 +325,25 @@ function initTerminal() {
   });
   $('btn-menu').addEventListener('click', openMenu);
 
-  connect();
+  /* Session tabs. */
+  $('btn-add-session').addEventListener('click', createSession);
+  $('session-tabs').addEventListener('click', (e) => {
+    const del = e.target.closest('.sess-del');
+    const tab = e.target.closest('.sess-tab');
+    if (del) { e.stopPropagation(); confirmDelete(del.dataset.id); return; }
+    if (tab && tab.dataset.id && tab.dataset.id !== activeId) attach(tab.dataset.id);
+  });
+
+  /* Empty-state "create" button inside the mask. */
+  const maskInner = document.querySelector('#term-mask .mask-inner');
+  emptyBtn = document.createElement('button');
+  emptyBtn.className = 'btn primary empty-start';
+  emptyBtn.textContent = T.startTerminal;
+  emptyBtn.addEventListener('click', createSession);
+  maskInner.appendChild(emptyBtn);
 }
 
 async function pasteText() {
-  /* Focus xterm's hidden textarea first so any native paste lands in it. */
   try {
     const ta = term && term.textarea;
     if (ta && document.activeElement !== ta) ta.focus();
@@ -284,7 +351,7 @@ async function pasteText() {
   try {
     const t = await navigator.clipboard.readText();
     if (t) { term.paste(t); return; }
-  } catch (e) { /* clipboard read blocked — fall through to native paste */ }
+  } catch (e) {}
   try { document.execCommand('paste'); } catch (e) {}
 }
 
@@ -293,47 +360,159 @@ function toggleFullscreen() {
   else { document.exitFullscreen().catch(() => {}); }
 }
 
-function connect() {
-  if (ws) { try { ws.close(); } catch (e) {} }
+/* --- Session lifecycle --- */
+async function initSessions() {
+  const r = await fetch(WEBPATH + '/api/sessions');
+  if (r.ok) {
+    const d = await r.json();
+    sessions = d.sessions || [];
+  }
+  if (sessions.length) {
+    const last = localStorage.getItem('nex_last');
+    const target = sessions.find((s) => s.id === last) || sessions[0];
+    attach(target.id);
+  } else {
+    createSession();
+  }
+}
+
+function closeWs() {
+  wsToken++;
+  if (ws) { try { ws.close(); } catch (e) {} ws = null; }
+}
+
+function attach(id) {
+  if (!id) return;
+  closeWs();
+  const t = ++wsToken;
+  activeId = id;
+  localStorage.setItem('nex_last', id);
+  renderTabs();
   setStatus('connecting');
+  maskShow(T.connecting, true);
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(proto + '//' + location.host + WEBPATH + '/ws');
+  ws = new WebSocket(proto + '//' + location.host + WEBPATH + '/ws?session=' + encodeURIComponent(id));
 
-  ws.onopen = () => {
-    $('term-mask').hidden = false;
-    $('mask-msg').textContent = T.connecting;
-    term.reset();
-    sendResize();
-  };
-
+  ws.onopen = () => { sendResize(); };
   ws.onmessage = (ev) => {
+    if (wsToken !== t) return;
     const raw = ev.data;
     if (typeof raw === 'string' && raw[0] === '{') {
       try {
         const j = JSON.parse(raw);
-        if (j.ready) { $('term-mask').hidden = true; setStatus('on'); }
-        if (j.err) { setStatus('err'); $('mask-msg').textContent = j.err; $('term-mask').hidden = false; }
+        if (j.session && j.replay) { term.reset(); setStatus('connecting'); maskShow(T.connecting, true); }
+        else if (j.err) { setStatus('err'); maskShow(j.err, false); }
+        else if (j.ready || j.session) { maskHide(); setStatus('on'); }
         return;
       } catch (e) {}
     }
     term.write(typeof raw === 'string' ? raw : new Uint8Array(raw));
   };
-
   ws.onclose = () => {
-    if (wantOpen) { setStatus('err'); $('mask-msg').textContent = T.disconnected; $('term-mask').hidden = false; }
+    if (wsToken !== t) return;
+    ws = null;
+    if (sessions.some((s) => s.id === id)) { setStatus('err'); maskShow(T.disconnected, false); }
   };
   ws.onerror = () => {};
 }
 
 function sendResize() {
+  if (!term || !ws || ws.readyState !== 1) return;
   const dims = { cols: term.cols, rows: term.rows };
-  if (ws && ws.readyState === 1) ws.send('\u0000' + JSON.stringify(dims));
+  ws.send('\u0000' + JSON.stringify(dims));
+}
+
+async function createSession() {
+  const { status, data } = await post(WEBPATH + '/api/sessions', {});
+  if (status !== 200) { toast(T.sessionErr, 'err'); return; }
+  sessions.push({ id: data.id, number: data.number, color: data.color, host: data.host, user: data.user, ready: false });
+  attach(data.id);
+}
+
+let pendingDelete = null;
+function confirmDelete(id) {
+  pendingDelete = id;
+  $('confirm').hidden = false;
+}
+
+function bindConfirm() {
+  $('confirm-cancel').addEventListener('click', () => { $('confirm').hidden = true; pendingDelete = null; });
+  $('confirm-ok').addEventListener('click', async () => {
+    const id = pendingDelete; pendingDelete = null;
+    $('confirm').hidden = true;
+    if (!id) return;
+    const r = await fetch(WEBPATH + '/api/sessions/' + encodeURIComponent(id), { method: 'DELETE' });
+    if (!r.ok) { toast(T.deleteFail, 'err'); return; }
+    const wasActive = id === activeId;
+    sessions = sessions.filter((s) => s.id !== id);
+    if (sessions.length === 0) { closeWs(); activeId = null; showEmpty(); renderTabs(); }
+    else if (wasActive) { attach(sessions[0].id); }
+    else renderTabs();
+  });
+}
+
+/* --- Tab rendering + empty state --- */
+function renderTabs() {
+  const el = $('session-tabs');
+  if (!el) return;
+  el.innerHTML = '';
+  sessions.forEach((s) => {
+    const b = document.createElement('button');
+    b.className = 'sess-tab' + (s.id === activeId ? ' active' : '');
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-selected', s.id === activeId ? 'true' : 'false');
+    b.dataset.id = s.id;
+    const dot = document.createElement('span');
+    dot.className = 'dot'; dot.style.setProperty('--c', s.color);
+    const num = document.createElement('span');
+    num.className = 'sess-num'; num.textContent = '#' + s.number;
+    const host = document.createElement('span');
+    host.className = 'sess-host'; host.textContent = s.host;
+    const del = document.createElement('span');
+    del.className = 'sess-del'; del.dataset.id = s.id; del.title = T.deleteSess;
+    del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    b.appendChild(dot); b.appendChild(num); b.appendChild(host); b.appendChild(del);
+    el.appendChild(b);
+  });
+  const has = sessions.length > 0;
+  if (!has) showEmpty(); else hideEmpty();
+}
+
+function showEmpty() {
+  const spinner = document.querySelector('#term-mask .spinner');
+  if (spinner) spinner.style.display = 'none';
+  if (emptyBtn) emptyBtn.style.display = 'inline-flex';
+  $('mask-msg').textContent = T.noSessionsDesc;
+  $('term-mask').hidden = false;
+  setStatus('idle');
+}
+
+function hideEmpty() {
+  const spinner = document.querySelector('#term-mask .spinner');
+  if (spinner) spinner.style.display = '';
+  if (emptyBtn) emptyBtn.style.display = 'none';
+}
+
+function maskShow(msg, spinner) {
+  const sp = document.querySelector('#term-mask .spinner');
+  if (sp) sp.style.display = spinner ? '' : 'none';
+  if (emptyBtn) emptyBtn.style.display = 'none';
+  $('mask-msg').textContent = msg;
+  $('term-mask').hidden = false;
+}
+
+function maskHide() {
+  $('term-mask').hidden = true;
 }
 
 function setStatus(kind) {
   const el = $('conn-status');
   el.className = 'badge ' + kind;
-  el.textContent = kind === 'on' ? T.connected : kind === 'connecting' ? T.connecting : T.disconnected;
+  if (kind === 'on') el.textContent = T.connected;
+  else if (kind === 'connecting') el.textContent = T.connecting;
+  else if (kind === 'err') el.textContent = T.disconnected;
+  else el.textContent = '—';
 }
 
 /* ------------------------------------------------------------------ */
@@ -353,12 +532,13 @@ function closeMenu() {
 function initAdmin() {
   $('menu-close').addEventListener('click', closeMenu);
   $('overlay').addEventListener('click', closeMenu);
+  bindConfirm();
 
   $('btn-change-pass').addEventListener('click', async () => {
     const { status, data } = await post(WEBPATH + '/api/password', { current: $('cur-pass').value, new: $('new-pass').value });
     const m = $('msg-pass');
     m.hidden = false;
-    if (status === 200) { m.className = 'mini-msg'; m.textContent = T.saved; $('cur-pass').value = $('new-pass').value = ''; }
+    if (status === 200) { m.className = 'mini-msg ok'; m.textContent = T.saved; $('cur-pass').value = $('new-pass').value = ''; }
     else { m.className = 'mini-msg warn'; m.textContent = data.error === 'wrong-password' ? T.wrongPass : T.errWeakPass; }
   });
 
@@ -384,7 +564,7 @@ function initAdmin() {
     const { status } = await post(WEBPATH + '/api/ssh', body);
     const m = $('msg-ssh');
     m.hidden = false;
-    if (status === 200) { m.className = 'mini-msg'; m.textContent = T.saved; $('ssh-pass').value = ''; wantOpen = true; connect(); }
+    if (status === 200) { m.className = 'mini-msg ok'; m.textContent = T.saved; $('ssh-pass').value = ''; }
     else { m.className = 'mini-msg warn'; m.textContent = T.errSsh; }
   });
 
