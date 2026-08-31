@@ -28,9 +28,6 @@ const I18N = {
     secPathTitle: 'مسیر (Webpath)',
     secSshTitle: 'اتصال SSH',
     secLangTitle: 'زبان',
-    secDelTitle: 'حذف پروژه',
-    delHint: 'برای حذف کامل، کلمهٔ DELETE را تایپ کنید.',
-    delBtn: 'حذف پروژه',
     wrongPass: 'رمز فعلی اشتباه است.',
     saved: 'ذخیره شد.',
     pathChanged: 'مسیر تغییر کرد. در حال انتقال…',
@@ -42,8 +39,6 @@ const I18N = {
     disconnected: 'قطع',
     reconnect: 'اتصال دوباره',
     copied: 'کپی شد.',
-    confirmDel: 'پروژه حذف می‌شود؛ مطمئن هستید؟',
-    deleting: 'در حال حذف…',
     copiedAutomatic: 'متن انتخاب‌شده کپی شد.',
     menu: 'منو'
   },
@@ -71,9 +66,6 @@ const I18N = {
     secPathTitle: 'Path (webpath)',
     secSshTitle: 'SSH connection',
     secLangTitle: 'Language',
-    secDelTitle: 'Delete project',
-    delHint: 'Type DELETE to remove the project entirely.',
-    delBtn: 'Delete project',
     wrongPass: 'Current password is wrong.',
     saved: 'Saved.',
     pathChanged: 'Path changed. Redirecting…',
@@ -85,8 +77,6 @@ const I18N = {
     disconnected: 'Disconnected',
     reconnect: 'Reconnect',
     copied: 'Copied.',
-    confirmDel: 'This removes the project. Are you sure?',
-    deleting: 'Deleting…',
     copiedAutomatic: 'Selection copied.',
     menu: 'Menu'
   }
@@ -110,14 +100,12 @@ function setLang(lang) {
     'login-pass-label': 'loginPassLabel', 'login-btn': 'loginBtn',
     'menu-title': 'menuTitle', 'status-title': 'statusTitle',
     'sec-pass-title': 'secPassTitle', 'sec-path-title': 'secPathTitle',
-    'sec-ssh-title': 'secSshTitle', 'sec-lang-title': 'secLangTitle',
-    'sec-del-title': 'secDelTitle', 'del-hint': 'delHint', 'btn-delete': 'delBtn'
+    'sec-ssh-title': 'secSshTitle', 'sec-lang-title': 'secLangTitle'
   };
   Object.keys(m).forEach((id) => { if ($(id)) $(id).textContent = T[m[id]]; });
   $('cur-pass').placeholder = T.curPass;
   $('new-pass').placeholder = T.newPass;
   $('btn-change-pass').textContent = T.savePass;
-  $('btn-delete').textContent = T.delBtn;
 }
 
 async function post(url, body) {
@@ -221,6 +209,10 @@ function initTerminal() {
   term.open($('term'));
   fit.fit();
 
+  /* Send keystrokes to the server. Registered ONCE here so reconnects never
+     stack duplicate listeners (which would double every typed character). */
+  term.onData((data) => { if (ws && ws.readyState === 1) ws.send(data); });
+
   /* --- Bitvise-style copy: auto-copy on selection --- */
   term.onSelectionChange(() => {
     if (term.hasSelection()) {
@@ -320,8 +312,6 @@ function connect() {
     if (wantOpen) { setStatus('err'); $('mask-msg').textContent = T.disconnected; $('term-mask').hidden = false; }
   };
   ws.onerror = () => {};
-
-  term.onData((data) => { if (ws && ws.readyState === 1) ws.send(data); });
 }
 
 function sendResize() {
@@ -389,12 +379,6 @@ function initAdmin() {
 
   $('btn-lang-fa').addEventListener('click', () => post(WEBPATH + '/api/language', { lang: 'fa' }).then(() => setLang('fa')));
   $('btn-lang-en').addEventListener('click', () => post(WEBPATH + '/api/language', { lang: 'en' }).then(() => setLang('en')));
-
-  $('btn-delete').addEventListener('click', async () => {
-    if ($('del-confirm').value.trim() !== 'DELETE') { toast(T.confirmDel, 'err'); return; }
-    toast(T.deleting, '');
-    await post(WEBPATH + '/api/delete', { confirm: 'DELETE' });
-  });
 }
 
 async function loadStatus() {
