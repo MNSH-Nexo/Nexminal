@@ -26,24 +26,30 @@ browser — no SSH client needed.
     warning — expected, since valid certs can't be issued for bare IPs)
 - Portable: installs on any server with one script, runs as a systemd service
 
-## Install (easy)
+## Install (one line)
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/MNSH-Nexo/Nexminal/main/install.sh)
+```
+
+Or the classic two-step (clone & run):
 
 ```bash
 git clone https://github.com/MNSH-Nexo/Nexminal.git Nexminal
 cd Nexminal
-sudo ./install.sh          # IP only → self-signed HTTPS
-# or with a domain:
-sudo ./install.sh yourdomain.com   # automatic Let's Encrypt HTTPS
+sudo ./install.sh
 ```
 
-> Note: this repository is **private**, so cloning requires your GitHub
-> credentials to be available on the machine (e.g. `gh auth login` or a
-> configured SSH key / PAT).
+- **IP only** → automatic self-signed HTTPS.
+- **With a domain** → run the same script with your domain as the first
+  argument, e.g. `sudo ./install.sh yourdomain.com` (automatic Let's Encrypt).
+- Pass extra options via environment variables:
+  `APP_DIR=/opt/webterm WEBTERM_PORT=9443 bash <(curl -fsSL .../install.sh)`.
 
-**The installer picks the ports itself.** If port 80 or 443 is already taken
-on your server, it detects it and asks you for a free port (or picks one
-automatically in non-interactive mode). So it works even on servers that
-already run another panel.
+> **The installer picks the ports itself.** If port 80 or 443 is already taken
+> on your server, it detects it and asks you for a free port (or picks one
+> automatically in non-interactive mode). So it works even on servers that
+> already run another panel.
 
 After install, open the printed **HTTPS URL**. On the first visit you:
 

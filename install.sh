@@ -88,16 +88,38 @@ fi
 NODE_BIN="$(command -v node)"
 echo "    using node: $("$NODE_BIN" -v)"
 
-# --- 2. Copy app (skipped when already running from the target dir) ---
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# --- 2. Obtain the app source -----------------------------------
+# Works two ways:
+#   a) Run from a local clone (source files are next to this script)
+#   b) Run via `curl ... | bash` (source is fetched from GitHub on demand)
+SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 mkdir -p "${APP_DIR}/public" "${APP_DIR}/server" "${APP_DIR}/data"
-if [[ "$SRC" != "$APP_DIR" ]]; then
-  echo "==> Installing to ${APP_DIR}"
-  cp -r "${SRC}/public/." "${APP_DIR}/public/"
-  cp -r "${SRC}/server/." "${APP_DIR}/server/"
-  cp -f "${SRC}/package.json" "${APP_DIR}/package.json" 2>/dev/null || true
+
+if [[ -d "${SRC}/public" && -d "${SRC}/server" ]]; then
+  if [[ "$SRC" != "$APP_DIR" ]]; then
+    echo "==> Installing from local source"
+    cp -r "${SRC}/public/." "${APP_DIR}/public/"
+    cp -r "${SRC}/server/." "${APP_DIR}/server/"
+    cp -f "${SRC}/package.json" "${APP_DIR}/package.json" 2>/dev/null || true
+  else
+    echo "==> Running in-place install (src = ${APP_DIR})"
+  fi
 else
-  echo "==> Running in-place install (src = ${APP_DIR})"
+  echo "==> Fetching Nexminal source from GitHub..."
+  if ! command -v git >/dev/null 2>&1; then
+    echo "ERROR: 'git' is required for a remote (curl | bash) install." >&2
+    exit 1
+  fi
+  TMP="$(mktemp -d)"
+  if ! git clone --depth 1 https://github.com/MNSH-Nexo/Nexminal.git "${TMP}/Nexminal" >/dev/null 2>&1; then
+    echo "ERROR: could not download the Nexminal source." >&2
+    rm -rf "$TMP"
+    exit 1
+  fi
+  cp -r "${TMP}/Nexminal/public/." "${APP_DIR}/public/"
+  cp -r "${TMP}/Nexminal/server/." "${APP_DIR}/server/"
+  cp -f "${TMP}/Nexminal/package.json" "${APP_DIR}/package.json"
+  rm -rf "$TMP"
 fi
 
 cd "${APP_DIR}"
