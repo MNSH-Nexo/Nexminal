@@ -58,19 +58,30 @@ app.use((req, res, next) => {
 });
 
 // ---------- Vendored xterm assets ----------
+// These are stable libraries — cache aggressively so slow devices never
+// re-download them on refresh. No sensitive data is served here.
 const xtermRoot = path.join(APP_ROOT, 'node_modules', '@xterm');
-app.use('/vendor', express.static(xtermRoot, { index: false }));
+app.use('/vendor', express.static(xtermRoot, {
+  index: false,
+  immutable: true,
+  maxAge: '365d'
+}));
 
-// ---------- Frontend static assets (js, css, html) ----------
-// index.html is served by serveIndex() below (webpath injected), so disable
-// the automatic "index.html for /" behavior of express.static.
-app.use('/', express.static(PUBLIC_DIR, { index: false }));
+// ---------- Frontend static assets (js, css) ----------
+// Our own app code changes more often, so cache for an hour with ETag (a cheap
+// 304 revalidation after that). index.html is served by serveIndex() below.
+app.use('/', express.static(PUBLIC_DIR, {
+  index: false,
+  maxAge: '1h'
+}));
 
 function serveIndex(res) {
   const html = fs
     .readFileSync(INDEX_HTML, 'utf8')
     .replace(/\{\{WEBPATH\}\}/g, cfg.webpath);
-  res.type('html').send(html);
+  res.type('html');
+  res.set('Cache-Control', 'no-cache'); // index.html must always be fresh
+  res.send(html);
 }
 
 function loadPublic() {

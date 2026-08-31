@@ -357,7 +357,15 @@ input:focus, .in:focus { border-color: var(--accent); background: rgba(7, 10, 18
   z-index: 3;
   pointer-events: none;
 }
-#term { width: 100%; height: 100%; }
+#term {
+  width: 100%;
+  height: 100%;
+  /* Inner breathing room so long lines don't bleed under the rounded corners.
+     The dark background keeps the padded area visually part of the screen. */
+  padding: 10px 12px;
+  overflow: hidden;
+  background: var(--term-bg);
+}
 #term .xterm { height: 100%; }
 .xterm .xterm-viewport { background: var(--term-bg) !important; }
 
@@ -528,6 +536,48 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 .btn.danger:hover { background: linear-gradient(180deg, #ffa3a3, #ff7d7d); }
 
 /* ============================================================
+   Mobile keybar (Termux-style) — shown only on small screens
+   ============================================================ */
+.keybar {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(11, 15, 24, 0.9);
+  border-top: 1px solid var(--border);
+}
+.keybar-row { display: flex; gap: 6px; }
+.keybar-row .kbtn { flex: 1; }
+.kbtn {
+  appearance: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  padding: 11px 4px;
+  cursor: pointer;
+  min-height: 42px;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.kbtn:active { transform: translateY(1px); background: var(--surface-3); color: var(--ink); }
+.kbtn.active {
+  color: #fff;
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(77, 139, 255, 0.35);
+}
+.karrow { font-size: 15px; padding: 8px 4px; }
+.kclear { color: var(--danger); border-color: rgba(251, 106, 106, 0.4); }
+
+/* ============================================================
    Motion
    ============================================================ */
 @keyframes riseIn {
@@ -568,6 +618,8 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
   .icon-btn { padding: 8px 9px; font-size: 12px; min-height: 40px; min-width: 38px; justify-content: center; }
   /* Icon-only toolbar on small screens (labels hidden, generous hit area). */
   .icon-btn > span:not(.sess-num):not(.lang) { display: none; }
+  /* But labels flagged .keep (the A− / A+ signs) stay visible on mobile. */
+  .icon-btn > span.keep { display: inline-flex; }
   .card { padding: 26px 20px; }
   .drawer { width: 100vw; }
   .toast { left: 16px; right: 16px; transform: none; text-align: center; }

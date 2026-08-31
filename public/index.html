@@ -72,11 +72,11 @@
         <span class="tools-sep"></span>
         <button class="icon-btn" id="btn-font-down" title="Smaller" data-i18n-title="fontDown">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21l6-14 6 14"/><path d="M7 15h6"/></svg>
-          <span data-i18n="fontA">A</span>
+          <span class="keep">−</span>
         </button>
         <button class="icon-btn" id="btn-font-up" title="Larger" data-i18n-title="fontUp">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21l6-14 6 14"/><path d="M7 15h6"/></svg>
-          <span data-i18n="fontA">A</span>
+          <span class="keep">+</span>
         </button>
         <button class="icon-btn" id="btn-fullscreen" title="Fullscreen" data-i18n-title="fullscreen">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5"/><path d="M21 8V3h-5"/><path d="M3 16v5h5"/><path d="M16 21h5v-5"/></svg>
@@ -105,6 +105,24 @@
         </div>
       </div>
     </main>
+
+    <!-- Termux-style keybar: only shown on small screens (mobile). -->
+    <div id="keybar" class="keybar" hidden>
+      <div class="keybar-row keybar-mod">
+        <button class="kbtn" data-mod="esc" data-kbd="Escape">ESC</button>
+        <button class="kbtn" data-mod="tab" data-kbd="Tab">TAB</button>
+        <button class="kbtn" data-mod="ctrl">CTRL</button>
+        <button class="kbtn" data-mod="alt">ALT</button>
+        <button class="kbtn" data-mod="shift">SHIFT</button>
+      </div>
+      <div class="keybar-row keybar-nav">
+        <button class="kbtn karrow" data-key="up">▲</button>
+        <button class="kbtn karrow" data-key="left">◀</button>
+        <button class="kbtn karrow" data-key="down">▼</button>
+        <button class="kbtn karrow" data-key="right">▶</button>
+        <button class="kbtn kclear" data-key="clear">DEL</button>
+      </div>
+    </div>
   </section>
 
   <!-- MENU / ADMIN -->

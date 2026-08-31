@@ -45,6 +45,7 @@ const I18N = {
     connected: 'متصل',
     disconnected: 'قطع',
     reconnect: 'اتصال دوباره',
+    reconnecting: 'در حال اتصال مجدد…',
     copied: 'کپی شد.',
     copiedAutomatic: 'متن انتخاب‌شده کپی شد.',
     menu: 'منو',
@@ -109,6 +110,7 @@ const I18N = {
     connected: 'Connected',
     disconnected: 'Disconnected',
     reconnect: 'Reconnect',
+    reconnecting: 'Reconnecting…',
     copied: 'Copied.',
     copiedAutomatic: 'Selection copied.',
     menu: 'Menu',
@@ -260,6 +262,9 @@ let wsToken = 0;
 let sessions = [];
 let activeId = null;
 let emptyBtn = null;
+let retry = null;
+// Latched modifiers for the mobile keybar.
+const mods = { ctrl: false, alt: false, shift: false };
 
 function initTerminal() {
   term = new Terminal({
@@ -276,8 +281,9 @@ function initTerminal() {
   fit.fit();
 
   /* Keystrokes → the active session. Registered ONCE so reconnects never
-     stack duplicate listeners. */
-  term.onData((data) => { if (ws && ws.readyState === 1) ws.send(data); });
+     stack duplicate listeners. sendInput() applies any latched mobile keybar
+     modifiers (CTRL/ALT/SHIFT) before forwarding. */
+  term.onData((data) => sendInput(data));
 
   /* Native paste support: let xterm's hidden textarea handle Ctrl+V. */
   term.attachCustomKeyEventHandler((e) => {
@@ -341,6 +347,90 @@ function initTerminal() {
   emptyBtn.textContent = T.startTerminal;
   emptyBtn.addEventListener('click', createSession);
   maskInner.appendChild(emptyBtn);
+
+  initKeybar();
+  updateKeybar();
+  window.addEventListener('resize', updateKeybar);
+}
+
+/* --- Mobile keybar (Termux-style) --- */
+function initKeybar() {
+  const kb = $('keybar');
+  if (!kb) return;
+  kb.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.mod === 'ctrl') { toggleMod('ctrl'); return; }
+    if (b.dataset.mod === 'alt') { toggleMod('alt'); return; }
+    if (b.dataset.mod === 'shift') { toggleMod('shift'); return; }
+    if (b.dataset.mod === 'esc') { clearMods(); sendRaw('\x1b'); return; }
+    if (b.dataset.mod === 'tab') { clearMods(); sendRaw('\t'); return; }
+    if (b.dataset.key) {
+      if (b.dataset.key === 'clear') { clearMods(); term.clear(); return; }
+      sendArrow(b.dataset.key);
+    }
+  });
+}
+
+function updateKeybar() {
+  const kb = $('keybar');
+  if (!kb) return;
+  // Show only on small screens (phones/tablets in portrait); desktop hides it.
+  const small = window.innerWidth < 700;
+  kb.hidden = !small;
+  if (!small) clearMods();
+}
+
+function toggleMod(k) { mods[k] = !mods[k]; updateMods(); }
+function clearMods() { mods.ctrl = mods.alt = mods.shift = false; updateMods(); }
+function updateMods() {
+  ['ctrl', 'alt', 'shift'].forEach((k) => {
+    document.querySelectorAll('[data-mod="' + k + '"]').forEach((b) => b.classList.toggle('active', mods[k]));
+  });
+}
+
+function sendRaw(str) {
+  if (ws && ws.readyState === 1) ws.send(str);
+}
+
+/* Apply latched modifiers to a physical-key string and send it. */
+function sendInput(data) {
+  if (!data) return;
+  const active = mods.ctrl || mods.alt || mods.shift;
+  if (!active) { sendRaw(data); return; }
+  if (data.length === 1) {
+    if (mods.ctrl) {
+      mods.ctrl = false;
+      const l = data.toLowerCase();
+      const cc = l.charCodeAt(0);
+      if (cc >= 97 && cc <= 122) { sendRaw(String.fromCharCode(cc - 96)); } // a→^A … z→^Z
+      else { sendRaw(data); } // Ctrl+non-letter: pass through
+    } else if (mods.alt) {
+      mods.alt = false;
+      sendRaw('\x1b' + data); // Alt+letter = ESC then letter
+    } else if (mods.shift) {
+      mods.shift = false;
+      sendRaw(data.toUpperCase());
+    }
+    updateMods();
+    return;
+  }
+  // Multi-char (Enter, Backspace, …): drop latched modifiers and pass through.
+  clearMods();
+  sendRaw(data);
+}
+
+/* Arrow keys from the keybar. CTRL/ALT latched → word/line navigation. */
+function sendArrow(key) {
+  const word = mods.ctrl || mods.alt;
+  const map = {
+    up: word ? '\x1b[1;5A' : '\x1b[A',
+    down: word ? '\x1b[1;5B' : '\x1b[B',
+    right: word ? '\x1b[1;5C' : '\x1b[C',
+    left: word ? '\x1b[1;5D' : '\x1b[D'
+  };
+  if (word) clearMods();
+  sendRaw(map[key]);
 }
 
 async function pasteText() {
@@ -381,8 +471,9 @@ function closeWs() {
   if (ws) { try { ws.close(); } catch (e) {} ws = null; }
 }
 
-function attach(id) {
+function attach(id, attempt) {
   if (!id) return;
+  if (retry) { clearTimeout(retry); retry = null; }
   closeWs();
   const t = ++wsToken;
   activeId = id;
@@ -411,9 +502,30 @@ function attach(id) {
   ws.onclose = () => {
     if (wsToken !== t) return;
     ws = null;
-    if (sessions.some((s) => s.id === id)) { setStatus('err'); maskShow(T.disconnected, false); }
+    // Only auto-reconnect if this session is still open AND is the active one.
+    if (sessions.some((s) => s.id === id) && activeId === id) {
+      setStatus('err');
+      maskShow(T.disconnected, false);
+      scheduleReconnect(id, (attempt || 0) + 1);
+    }
   };
   ws.onerror = () => {};
+}
+
+/* Exponential backoff with jitter (1s → 2s → 4s … cap 30s), so a flaky
+   connection self-heals without hammering the server. Buffered output on the
+   server is replayed on reconnect, so nothing is lost. */
+function scheduleReconnect(id, attempt) {
+  if (retry) { clearTimeout(retry); retry = null; }
+  const cap = 30000;
+  const base = attempt <= 1 ? 1000 : Math.min(cap, 2000 * Math.pow(2, attempt - 1));
+  const delay = base + Math.round(Math.random() * 500);
+  setStatus('connecting');
+  maskShow(T.reconnecting, true);
+  retry = setTimeout(() => {
+    retry = null;
+    if (activeId === id) attach(id, attempt);
+  }, delay);
 }
 
 function sendResize() {

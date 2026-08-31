@@ -17,8 +17,18 @@ function parseCookie(str) {
 // sessions may upgrade. Binary messages prefixed with '\u0000' carry a JSON
 // {rows, cols} resize payload; everything else is terminal input.
 function attachWSServer(server) {
-  const wss = new WebSocket.Server({ noServer: true });
+  const wss = new WebSocket.Server({
+    noServer: true,
+    // Compress terminal output on the wire — big win on slow/limited networks
+    // since shell output has lots of repeated whitespace and control chars.
+    perMessageDeflate: {
+      threshold: 128,
+      zlibDeflateOptions: { chunkSize: 1024, memLevel: 7, level: 6 },
+      zlibInflateOptions: { chunkSize: 16 * 1024 }
+    }
+  });
   const getCfg = () => load();
+  const HEARTBEAT_MS = 45000; // ~75% of a typical 60s proxy/NAT timeout
 
   server.on('upgrade', (req, socket, head) => {
     const cfg = getCfg();
@@ -61,6 +71,22 @@ function attachWSServer(server) {
       }
       sessions.write(sess.id, str);
     });
+
+    /* Heartbeat: keep the connection alive through NATs/proxies and detect
+       half-open ("zombie") connections so we can free them and let the client
+       reconnect. */
+    ws.isAlive = true;
+    ws.on('pong', () => { ws.isAlive = true; });
+    const heartbeat = setInterval(() => {
+      if (ws.isAlive === false) {
+        try { ws.terminate(); } catch (e) {}
+        return;
+      }
+      ws.isAlive = false;
+      try { ws.ping(); } catch (e) {}
+    }, HEARTBEAT_MS);
+    ws.on('close', () => clearInterval(heartbeat));
+    ws.on('error', () => clearInterval(heartbeat));
   });
 
   return wss;

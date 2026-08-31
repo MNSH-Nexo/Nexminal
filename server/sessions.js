@@ -30,7 +30,6 @@ const PALETTE = [
 const BUFFER_CAP = 600000;
 
 const sessions = {}; // id -> session
-let counter = 0;
 
 function sendCtrl(ws, obj) {
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj));
@@ -45,14 +44,24 @@ function pushOut(sess, str) {
   }
 }
 
+// Reuse the lowest free number so tabs stay 1,2,3… instead of climbing forever
+// as sessions are opened and closed. Color follows the number, so #1 is always
+// the same hue and a reused number keeps its color.
+function nextNumber() {
+  const used = new Set(Object.values(sessions).map((s) => s.number));
+  let n = 1;
+  while (used.has(n)) n++;
+  return n;
+}
+
 function create() {
   const cfg = load();
-  counter += 1;
   const id = crypto.randomBytes(8).toString('hex');
+  const number = nextNumber();
   const sess = {
     id,
-    number: counter,
-    color: PALETTE[(counter - 1) % PALETTE.length],
+    number,
+    color: PALETTE[(number - 1) % PALETTE.length],
     host: cfg.ssh.host + ':' + cfg.ssh.port,
     user: cfg.ssh.username,
     buffer: [],
