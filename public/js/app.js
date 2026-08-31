@@ -122,10 +122,14 @@ async function post(url, body) {
 function toast(msg, kind) {
   const el = $('toast');
   el.textContent = msg;
-  el.className = 'toast ' + (kind || '');
+  el.className = 'toast show ' + (kind || '');
   el.hidden = false;
   clearTimeout(el._t);
-  el._t = setTimeout(() => { el.hidden = true; }, 2500);
+  el._t = setTimeout(() => {
+    el.classList.remove('show');
+    el.addEventListener('transitionend', () => { el.hidden = true; }, { once: true });
+    setTimeout(() => { el.hidden = true; }, 300);
+  }, 2400);
 }
 
 /* ------------------------------------------------------------------ */
@@ -200,7 +204,7 @@ function initTerminal() {
     cursorBlink: true,
     fontSize: 14,
     fontFamily: 'Menlo, Consolas, "Courier New", monospace',
-    theme: { background: '#0a0c10', foreground: '#e6edf3', cursor: '#2f81f7', selectionBackground: '#2f81f7' }
+    theme: { background: '#04060b', foreground: '#e7ecf6', cursor: '#4d8bff', selectionBackground: '#3d5a99' }
   });
   fit = new FitAddon.FitAddon();
   const links = new WebLinksAddon.WebLinksAddon();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WebTerm</title>
+  <title>Nexminal</title>
   <link rel="stylesheet" href="{{WEBPATH}}/vendor/xterm/css/xterm.css" />
   <link rel="stylesheet" href="{{WEBPATH}}/css/style.css" />
 </head>
@@ -11,7 +11,10 @@
   <!-- SETUP -->
   <section id="screen-setup" class="screen" hidden>
     <form id="setup-form" class="card">
-      <div class="logo">WebTerm</div>
+      <div class="card-brand">
+        <div class="brand-mark">&gt;_</div>
+        <div class="logo">Nex<span class="dot">minal</span></div>
+      </div>
       <h1 id="setup-title" class="title">تنظیم اولیه</h1>
       <p id="setup-desc" class="desc">رمز عبور مدیریت را تعیین کنید تا دفعات بعد خودکار وارد شوید.</p>
       <label class="field"><span id="setup-pass-label">رمز عبور</span>
@@ -33,7 +36,10 @@
   <!-- LOGIN -->
   <section id="screen-login" class="screen" hidden>
     <form id="login-form" class="card">
-      <div class="logo">WebTerm</div>
+      <div class="card-brand">
+        <div class="brand-mark">&gt;_</div>
+        <div class="logo">Nex<span class="dot">minal</span></div>
+      </div>
       <h1 class="title" id="login-title">ورود</h1>
       <p class="desc" id="login-desc">رمز عبور مدیریت را وارد کنید.</p>
       <label class="field"><span id="login-pass-label">رمز عبور</span>
@@ -48,7 +54,8 @@
   <section id="screen-term" class="screen" hidden>
     <header class="topbar">
       <div class="brand">
-        <span class="logo-sm">WebTerm</span>
+        <div class="brand-mark">N</div>
+        <span class="logo-sm">Nex<span class="dot">minal</span></span>
         <span id="conn-status" class="badge">—</span>
       </div>
       <div class="tools">
