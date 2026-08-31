@@ -540,7 +540,7 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
    ============================================================ */
 .keybar {
   flex: none;
-  display: flex;
+  display: none; /* hidden by default; shown via media query below */
   flex-direction: column;
   gap: 6px;
   padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
@@ -559,6 +559,12 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
   }
 }
 .keybar-row { display: flex; gap: 6px; }
+/* Show the keybar on any touch-primary device (phones & tablets), and also on
+   any viewport narrower than 1024px (tablets, split-screen, devtools emulation).
+   Pure CSS => no dependence on JS or the `hidden` attribute. */
+@media (hover: none), (max-width: 1024px) {
+  .keybar { display: flex; }
+}
 .keybar-row .kbtn { flex: 1; }
 .kbtn {
   appearance: none;

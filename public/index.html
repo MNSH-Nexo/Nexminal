@@ -106,8 +106,10 @@
       </div>
     </main>
 
-    <!-- Termux-style keybar: shown on touch devices (phones & tablets). -->
-    <div id="keybar" class="keybar" hidden>
+    <!-- Termux-style keybar: shown on touch devices (phones & tablets).
+         Visibility is controlled by CSS media query, not JS, so it always
+         appears on mobile/tablet regardless of script execution order. -->
+    <div id="keybar" class="keybar">
       <div class="keybar-row">
         <button class="kbtn" data-mod="esc">ESC</button>
         <button class="kbtn" data-mod="tab">TAB</button>

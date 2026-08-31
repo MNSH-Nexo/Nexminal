@@ -377,14 +377,12 @@ function initKeybar() {
 }
 
 function updateKeybar() {
-  const kb = $('keybar');
-  if (!kb) return;
-  // Show on touch devices (phones & tablets). Coarse pointer catches tablets
-  // even when they are wider than 700px; narrow screens always show it.
-  const touch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-  const narrow = window.innerWidth < 1024;
-  kb.hidden = !(touch || narrow);
-  if (kb.hidden) clearMods();
+  // Keybar visibility is handled entirely by CSS (@media (hover:none),(max-width:1024px))
+  // so it always shows on phones/tablets even before/without JS. Here we only
+  // release any latched modifier when the keybar isn't actually on screen.
+  const shown = window.matchMedia('(hover: none) and (pointer: coarse)').matches ||
+                window.innerWidth < 1024;
+  if (!shown) clearMods();
 }
 
 function toggleMod(k) { mods[k] = !mods[k]; updateMods(); }
