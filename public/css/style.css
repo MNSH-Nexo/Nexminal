@@ -48,7 +48,6 @@ html, body {
     radial-gradient(1200px 600px at 80% -10%, rgba(77, 139, 255, 0.08), transparent 60%),
     radial-gradient(900px 500px at 0% 110%, rgba(58, 214, 214, 0.05), transparent 55%),
     var(--bg);
-  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -82,8 +81,6 @@ body { display: flex; flex-direction: column; }
   padding: 34px 32px;
   box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   overflow: hidden;
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
   animation: riseIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 /* Quiet accent glow pinned to the top edge */
@@ -158,8 +155,6 @@ input:focus, .in:focus { border-color: var(--accent); background: rgba(7, 10, 18
   font-family: inherit;
   cursor: pointer;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .btn:hover { background: rgba(38, 48, 68, 0.8); border-color: rgba(255, 255, 255, 0.18); }
@@ -185,8 +180,6 @@ input:focus, .in:focus { border-color: var(--accent); background: rgba(7, 10, 18
   padding: 12px 18px;
   background: rgba(13, 17, 28, 0.5);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   gap: 10px;
   flex-wrap: wrap;
@@ -249,8 +242,6 @@ input:focus, .in:focus { border-color: var(--accent); background: rgba(7, 10, 18
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   transition: all 0.15s ease;
 }
 .icon-btn svg { width: 15px; height: 15px; flex: none; }
@@ -289,7 +280,7 @@ input:focus, .in:focus { border-color: var(--accent); background: rgba(7, 10, 18
   z-index: 3;
   pointer-events: none;
 }
-#term { width: 100%; height: 100%; padding: 12px 8px 6px 12px; }
+#term { width: 100%; height: 100%; }
 #term .xterm { height: 100%; }
 .xterm .xterm-viewport { background: var(--term-bg) !important; }
 
@@ -328,8 +319,6 @@ input:focus, .in:focus { border-color: var(--accent); background: rgba(7, 10, 18
   display: flex; flex-direction: column;
   transform: translateX(100%);
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
   box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5);
 }
 .drawer.open { transform: translateX(0); }
@@ -392,7 +381,6 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 .overlay {
   position: fixed; inset: 0;
   background: rgba(3, 5, 10, 0.6);
-  backdrop-filter: blur(3px);
   z-index: 15;
 }
 .overlay[hidden] { display: none; }
