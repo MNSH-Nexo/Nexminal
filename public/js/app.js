@@ -314,10 +314,15 @@ function initTerminal() {
     }
   });
 
-  /* Resize handling. */
-  const onResize = () => { if (fit) fit.fit(); };
+  /* Resize handling. Debounce fits to one per frame (rAF) so the ResizeObserver
+     + window resize don't fire a re-fit feedback loop that makes text shimmer. */
+  let fitRaf = 0;
+  const onResize = () => {
+    cancelAnimationFrame(fitRaf);
+    fitRaf = requestAnimationFrame(() => { if (fit) fit.fit(); });
+  };
   window.addEventListener('resize', onResize);
-  const ro = new ResizeObserver(() => fit && fit.fit());
+  const ro = new ResizeObserver(onResize);
   ro.observe($('term'));
 
   /* Toolbar. */
