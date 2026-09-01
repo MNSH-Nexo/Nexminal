@@ -561,12 +561,12 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 /* Show the keybar on any touch-primary device (phones & tablets), and also on
    any viewport narrower than 1024px (tablets, split-screen, devtools emulation).
    Pure CSS => no dependence on JS or the `hidden` attribute.
-   The keybar is pinned (position:fixed) to the BOTTOM of the viewport so it stays
-   visible even when the terminal page scrolls, and space is reserved for it so
-   the terminal's last lines are not hidden underneath. */
+   The keybar lives IN normal flow at the bottom of the (viewport-locked) terminal
+   screen, so the terminal always ends above it and the buttons never overlap the
+   terminal text. While the system keyboard is open it is hidden by JS to free
+   vertical space for the terminal. */
 @media (hover: none), (max-width: 1024px) {
-  .keybar { display: flex; position: fixed; inset-inline: 0; bottom: 0; z-index: 40; }
-  .term-wrap { margin-bottom: calc(236px + env(safe-area-inset-bottom)); }
+  .keybar { display: flex; }
 }
 .keybar-row .kbtn { flex: 1; }
 .kbtn {

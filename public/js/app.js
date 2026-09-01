@@ -355,6 +355,7 @@ function initTerminal() {
 
   initKeybar();
   updateKeybar();
+  watchKeyboard();
   window.addEventListener('resize', updateKeybar);
 }
 
@@ -382,14 +383,27 @@ function initKeybar() {
 }
 
 function updateKeybar() {
-  // Primary: pure-CSS @media (hover:none),(max-width:1024px) shows the keybar.
-  // Fallback: force display inline so it shows even if the media query doesn't
-  // match in a given emulation. This guarantees phones/tablets see the keybar.
+  // Visibility base is CSS (media query) + the shown flag below; we additionally
+  // hide the keybar while the system keyboard is open so the terminal gets room.
   const kb = $('keybar');
   const shown = window.matchMedia('(hover: none) and (pointer: coarse)').matches ||
                 window.innerWidth < 1024;
-  if (kb) kb.style.display = shown ? 'flex' : 'none';
+  if (kb) kb.style.display = (shown && !kbHiddenForKeyboard) ? 'flex' : 'none';
   if (!shown) clearMods();
+}
+
+// Keyboard-aware: when the on-screen keyboard shrinks the visual viewport, hide
+// the keybar to give the terminal the freed space; show it again once dismissed.
+let kbHiddenForKeyboard = false;
+function watchKeyboard() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const onVv = () => {
+    const open = vv.height < (window.innerHeight - 100);
+    if (open !== kbHiddenForKeyboard) { kbHiddenForKeyboard = open; updateKeybar(); }
+  };
+  vv.addEventListener('resize', onVv);
+  vv.addEventListener('scroll', onVv);
 }
 
 function toggleMod(k) { mods[k] = !mods[k]; updateMods(); }
