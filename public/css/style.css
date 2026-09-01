@@ -690,8 +690,9 @@ input[type="range"].slider::-moz-range-thumb {
   .icon-btn { padding: 8px 9px; font-size: 12px; min-height: 40px; min-width: 38px; justify-content: center; }
   /* Icon-only toolbar on small screens (labels hidden, generous hit area). */
   .icon-btn > span:not(.sess-num):not(.lang) { display: none; }
-  /* But labels flagged .keep (the A− / A+ signs) stay visible on mobile. */
-  .icon-btn > span.keep { display: inline-flex; }
+  /* But labels flagged .keep (the A− / A+ signs) stay visible on mobile.
+     !important overrides the higher-specificity "hide all labels" rule above. */
+  .icon-btn > span.keep { display: inline-flex !important; }
   .card { padding: 26px 20px; }
   .drawer { width: 100vw; }
   .toast { left: 16px; right: 16px; transform: none; text-align: center; }

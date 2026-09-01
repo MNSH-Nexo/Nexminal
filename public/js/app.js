@@ -280,6 +280,18 @@ let hbWatch = 0;
 // Latched modifiers for the mobile keybar.
 const mods = { ctrl: false, alt: false, shift: false };
 
+/* Auto-size the terminal font so text never scrambles on narrow (phone) screens.
+   Only shrinks on phone-like widths (keeps desktop at its default 14) and picks
+   a size that yields ~45 tidy columns for the terminal's actual width. */
+function autoFont() {
+  const el = $('term');
+  const w = (el && el.clientWidth) || window.innerWidth;
+  if (w >= 640) return; // desktop/tablet — keep the default 14
+  let f = Math.round(w / 28);
+  f = Math.min(14, Math.max(9, f));
+  if (term) term.options.fontSize = f;
+}
+
 function initTerminal() {
   term = new Terminal({
     cursorBlink: true,
@@ -292,7 +304,11 @@ function initTerminal() {
   term.loadAddon(fit);
   term.loadAddon(links);
   term.open($('term'));
+  autoFont();
   fit.fit();
+  // Re-run once the layout settles so the first fit reflects the true terminal
+  // size (font auto-sizes to the phone's width so text doesn't scramble).
+  setTimeout(() => { if (term) { autoFont(); if (fit) fit.fit(); } }, 150);
 
   /* Keystrokes → the active session. Registered ONCE so reconnects never
      stack duplicate listeners. sendInput() applies any latched mobile keybar
@@ -395,7 +411,7 @@ function bindResume() {
 function applyKeybarSize(size) {
   // Maps the admin-selected level (1…5) onto a CSS scale for --ks on the keybar.
   // Range now spans much smaller: level 1 ≈ 0.50, level 5 ≈ 1.38.
-  const s = Math.min(5, Math.max(1, Number(size) || 1));
+  const s = Math.min(5, Math.max(1, Number(size) || 2));
   const scale = (0.5 + (s - 1) * 0.22).toFixed(2);
   const kb = $('keybar');
   if (kb) kb.style.setProperty('--ks', scale);
@@ -434,22 +450,24 @@ function updateKeybar() {
   const kb = $('keybar');
   const shown = window.matchMedia('(hover: none) and (pointer: coarse)').matches ||
                 window.innerWidth < 1024;
-  if (kb) kb.style.display = (shown && !kbHiddenForKeyboard) ? 'flex' : 'none';
+  if (kb) kb.style.display = shown ? 'flex' : 'none';
   if (!shown) clearMods();
 }
 
-// Keyboard-aware: when the on-screen keyboard shrinks the visual viewport, hide
-// the keybar to give the terminal the freed space; show it again once dismissed.
-let kbHiddenForKeyboard = false;
+// Keyboard-aware: when the on-screen keyboard shrinks the visual viewport, pin
+// the terminal screen to the visible area above the keyboard so the keybar stays
+// in-flow right on top of the keys; restore full height once it is dismissed.
 function watchKeyboard() {
   const vv = window.visualViewport;
-  if (!vv) return;
+  const screen = $('screen-term');
+  if (!vv || !screen) return;
   const onVv = () => {
     const open = vv.height < (window.innerHeight - 100);
-    if (open !== kbHiddenForKeyboard) { kbHiddenForKeyboard = open; updateKeybar(); }
+    screen.style.height = open ? (vv.height + 'px') : '';
   };
   vv.addEventListener('resize', onVv);
   vv.addEventListener('scroll', onVv);
+  onVv();
 }
 
 function toggleMod(k) { mods[k] = !mods[k]; updateMods(); }
