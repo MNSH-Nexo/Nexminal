@@ -541,7 +541,7 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 .keybar {
   flex: none;
   display: none; /* hidden by default; shown via media query below */
-  position: relative; /* keep it above the terminal / any overlay */
+  position: relative; /* upgraded to position:fixed (pinned to viewport bottom) below */
   z-index: 30;
   flex-direction: column;
   gap: 6px;
@@ -563,9 +563,13 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 .keybar-row { display: flex; gap: 6px; }
 /* Show the keybar on any touch-primary device (phones & tablets), and also on
    any viewport narrower than 1024px (tablets, split-screen, devtools emulation).
-   Pure CSS => no dependence on JS or the `hidden` attribute. */
+   Pure CSS => no dependence on JS or the `hidden` attribute.
+   The keybar is pinned (position:fixed) to the BOTTOM of the viewport so it stays
+   visible even when the terminal page scrolls, and space is reserved for it so
+   the terminal's last lines are not hidden underneath. */
 @media (hover: none), (max-width: 1024px) {
-  .keybar { display: flex; }
+  .keybar { display: flex; position: fixed; inset-inline: 0; bottom: 0; z-index: 40; }
+  .term-wrap { margin-bottom: calc(236px + env(safe-area-inset-bottom)); }
 }
 .keybar-row .kbtn { flex: 1; }
 .kbtn {
