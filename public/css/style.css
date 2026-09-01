@@ -54,7 +54,7 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-body { display: flex; flex-direction: column; }
+body { display: flex; flex-direction: column; overflow: hidden; }
 
 ::selection { background: var(--accent-soft); color: var(--ink); }
 
@@ -64,9 +64,13 @@ body { display: flex; flex-direction: column; }
 ::-webkit-scrollbar-thumb:hover { background: #3d4c68; background-clip: content-box; }
 ::-webkit-scrollbar-track { background: transparent; }
 
-.screen { display: none; flex: 1; flex-direction: column; }
+.screen { display: none; flex: 1; min-height: 0; flex-direction: column; }
 .screen[hidden] { display: none; }
 .screen.visible { display: flex; }
+/* The terminal screen must never outgrow the viewport (which would push the
+   page into endless scrolling). It stays within the body height and clips any
+   overflow; the xterm instance scrolls internally instead. */
+#screen-term { overflow: hidden; }
 .screen.centered { align-items: center; justify-content: center; }
 
 /* ============================================================
