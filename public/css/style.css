@@ -543,9 +543,10 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
    Mobile/tablet keybar (Termux-style) — shown only on touch screens
    ============================================================ */
 .keybar {
-  flex: none;
   display: none; /* hidden by default; shown via media query below */
-  position: relative; /* upgraded to position:fixed (pinned to viewport bottom) below */
+  position: fixed; /* pinned above the on-screen keyboard (--kb-bottom set by JS) */
+  left: 0; right: 0;
+  bottom: var(--kb-bottom, 0px);
   z-index: 30;
   flex-direction: column;
   /* The keybar uses physical (LTR) ordering regardless of the page language so

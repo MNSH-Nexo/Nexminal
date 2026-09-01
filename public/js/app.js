@@ -52,6 +52,7 @@ const I18N = {
     reconnecting: 'در حال اتصال مجدد…',
     copied: 'کپی شد.',
     copiedAutomatic: 'متن انتخاب‌شده کپی شد.',
+    copiedScreen: 'خروجیِ صفحه کپی شد.',
     menu: 'منو',
     copy: 'کپی',
     paste: 'چسباندن',
@@ -121,6 +122,7 @@ const I18N = {
     reconnecting: 'Reconnecting…',
     copied: 'Copied.',
     copiedAutomatic: 'Selection copied.',
+    copiedScreen: 'Visible terminal text copied.',
     menu: 'Menu',
     copy: 'Copy',
     paste: 'Paste',
@@ -341,6 +343,8 @@ function initTerminal() {
     if (term.hasSelection()) {
       navigator.clipboard.writeText(term.getSelection())
         .then(() => toast(T.copied, 'ok')).catch(() => {});
+    } else {
+      copyVisibleText();
     }
   });
 
@@ -428,6 +432,10 @@ function initKeybar() {
   kb.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
+    // Keep the phone keyboard open after tapping a keybar key by returning focus
+    // to the terminal (tapping the button would otherwise blur the textarea and
+    // dismiss the keyboard).
+    setTimeout(() => { if (term) term.focus(); }, 0);
     if (b.dataset.mod === 'ctrl') { toggleMod('ctrl'); return; }
     if (b.dataset.mod === 'alt') { toggleMod('alt'); return; }
     if (b.dataset.mod === 'shift') { toggleMod('shift'); return; }
@@ -454,20 +462,49 @@ function updateKeybar() {
   if (!shown) clearMods();
 }
 
-// Keyboard-aware: when the on-screen keyboard shrinks the visual viewport, pin
-// the terminal screen to the visible area above the keyboard so the keybar stays
-// in-flow right on top of the keys; restore full height once it is dismissed.
+// Keyboard-aware: when the on-screen keyboard opens it shrinks the visual
+// viewport. We pin the keybar just above the keys (bottom offset = keyboard
+// height) and shrink the terminal screen to the visible area so the prompt
+// stays on screen without any manual scrolling. kbBaseH remembers the full
+// screen height, so detection works even on phones whose window.innerHeight
+// also shrinks when the keyboard appears.
+let kbBaseH = 0;
 function watchKeyboard() {
   const vv = window.visualViewport;
   const screen = $('screen-term');
+  const kb = $('keybar');
+  const wrap = document.querySelector('#screen-term .term-wrap');
   if (!vv || !screen) return;
-  const onVv = () => {
-    const open = vv.height < (window.innerHeight - 100);
-    screen.style.height = open ? (vv.height + 'px') : '';
+
+  const refreshBase = () => {
+    if (vv.height >= kbBaseH - 40) kbBaseH = Math.max(kbBaseH, window.innerHeight);
   };
-  vv.addEventListener('resize', onVv);
-  vv.addEventListener('scroll', onVv);
-  onVv();
+
+  const applyKb = () => {
+    refreshBase();
+    const open = vv.height < (kbBaseH - 120);
+    // Distance (px) from the bottom of the layout viewport to the visible area
+    // = height of the on-screen keyboard (0 when it is closed).
+    const kbBottom = Math.max(0, window.innerHeight - (vv.offsetTop + vv.height));
+
+    if (kb) kb.style.setProperty('--kb-bottom', kbBottom + 'px');
+
+    // Shrink the terminal screen to the visible area above the keyboard.
+    screen.style.height = open ? (vv.height + 'px') : '';
+
+    // Keep the terminal ending just above the (fixed) keybar.
+    const bar = kb ? kb.offsetHeight : 0;
+    if (wrap) wrap.style.marginBottom = bar + 'px';
+
+    // Reveal the current prompt so the user can always see where they type.
+    if (open && term && term.scrollToBottom) term.scrollToBottom();
+  };
+
+  window.addEventListener('resize', applyKb);
+  window.addEventListener('orientationchange', applyKb);
+  vv.addEventListener('resize', applyKb);
+  vv.addEventListener('scroll', applyKb);
+  applyKb();
 }
 
 function toggleMod(k) { mods[k] = !mods[k]; updateMods(); }
@@ -549,6 +586,25 @@ async function pasteText() {
     if (t) { term.paste(t); return; }
   } catch (e) {}
   try { document.execCommand('paste'); } catch (e) {}
+}
+
+/* Mobile-friendly copy: highlighting is hard on a phone, so when nothing is
+   selected, copy the terminal text currently visible on screen. */
+function copyVisibleText() {
+  try {
+    const buf = term && term.buffer && term.buffer.active;
+    if (!buf) return;
+    const lines = [];
+    for (let y = buf.viewportY; y < buf.viewportY + term.rows; y++) {
+      const line = buf.getLine(y);
+      lines.push(line ? line.translateToString() : '');
+    }
+    const text = lines.join('\n').replace(/\s+$/, '');
+    if (!text) return;
+    navigator.clipboard.writeText(text)
+      .then(() => toast(T.copiedScreen, 'ok'))
+      .catch(() => {});
+  } catch (e) { /* ignore */ }
 }
 
 function toggleFullscreen() {
