@@ -548,6 +548,12 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
   position: relative; /* upgraded to position:fixed (pinned to viewport bottom) below */
   z-index: 30;
   flex-direction: column;
+  /* The keybar uses physical (LTR) ordering regardless of the page language so
+     arrow keys sit where users expect: left-arrow on the left, right-arrow on
+     the right. Inside an RTL (Persian) document, flex rows would otherwise
+     reverse the arrow buttons, which is confusing. Keys are Latin glyphs, so
+     LTR is the correct reading order for the whole bar. */
+  direction: ltr;
   /* --ks scales every button dimension so an admin can pick the keybar size
      (1 small … 5 large). Default 1 => the compact size. */
   --ks: 1;
