@@ -271,6 +271,12 @@ let sessions = [];
 let activeId = null;
 let emptyBtn = null;
 let retry = null;
+// Heartbeat state: lastBeat is refreshed on any server message (incl. pongs).
+// If the socket is OPEN but we haven't heard anything for too long, it's a
+// zombie (e.g. after the tab was backgrounded) and we reconnect on our own.
+let lastBeat = 0;
+let hbPing = 0;
+let hbWatch = 0;
 // Latched modifiers for the mobile keybar.
 const mods = { ctrl: false, alt: false, shift: false };
 
@@ -365,6 +371,24 @@ function initTerminal() {
   updateKeybar();
   watchKeyboard();
   window.addEventListener('resize', updateKeybar);
+  bindResume();
+}
+
+/* --- Resume after the tab was backgrounded / network came back ---
+   Browsers freeze backgrounded tabs, so a WebSocket can go zombie (still OPEN
+   but actually dead) with no 'close' event. When the user returns to the tab
+   (visibilitychange / focus) or the network comes back (online), if the active
+   session's socket is gone, not OPEN, or stale, reconnect immediately so the
+   terminal is live without a manual refresh. */
+function bindResume() {
+  const resume = () => {
+    if (!activeId) return;
+    const stale = ws && ws.readyState === 1 && (Date.now() - lastBeat > 45000);
+    if (!ws || ws.readyState !== 1 || stale) attach(activeId);
+  };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') resume(); });
+  window.addEventListener('focus', resume);
+  window.addEventListener('online', resume);
 }
 
 /* --- Mobile keybar (Termux-style) --- */
@@ -532,7 +556,34 @@ async function initSessions() {
 
 function closeWs() {
   wsToken++;
+  stopHeartbeat();
   if (ws) { try { ws.close(); } catch (e) {} ws = null; }
+}
+
+/* Client-side heartbeat + watchdog. We ping the server every 15s; the server
+   echoes the ping back (see ws.js). If the socket is OPEN but we stop hearing
+   from the server for 45s (a zombie connection left over from backgrounding the
+   tab, or a silent network drop), we tear it down and reconnect. This makes the
+   terminal self-heal even when onclose never fires. */
+function startHeartbeat(t) {
+  stopHeartbeat();
+  lastBeat = Date.now();
+  hbPing = setInterval(() => {
+    if (wsToken !== t || !ws || ws.readyState !== 1) return;
+    try { ws.send('\u0002' + Date.now()); } catch (e) {}
+  }, 15000);
+  hbWatch = setInterval(() => {
+    if (wsToken !== t || !ws) return;
+    if (ws.readyState === 1 && Date.now() - lastBeat > 45000) {
+      if (activeId) attach(activeId); // drop the zombie and reconnect
+    }
+  }, 10000);
+}
+function stopHeartbeat() {
+  clearInterval(hbPing);
+  clearInterval(hbWatch);
+  hbPing = 0;
+  hbWatch = 0;
 }
 
 function attach(id, attempt) {
@@ -548,10 +599,13 @@ function attach(id, attempt) {
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(proto + '//' + location.host + WEBPATH + '/ws?session=' + encodeURIComponent(id));
 
-  ws.onopen = () => { sendResize(); };
+  ws.onopen = () => { lastBeat = Date.now(); startHeartbeat(t); sendResize(); };
   ws.onmessage = (ev) => {
     if (wsToken !== t) return;
     const raw = ev.data;
+    // Heartbeat pong ('\u0002…') — keeps lastBeat fresh; never render it.
+    if (typeof raw === 'string' && raw.charCodeAt(0) === 2) { lastBeat = Date.now(); return; }
+    lastBeat = Date.now();
     if (typeof raw === 'string' && raw[0] === '{') {
       try {
         const j = JSON.parse(raw);

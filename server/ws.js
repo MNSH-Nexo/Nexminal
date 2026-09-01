@@ -62,11 +62,18 @@ function attachWSServer(server) {
 
     ws.on('message', (raw) => {
       const str = raw.toString('utf8');
-      if (str.charCodeAt(0) === 0) {
+      const c0 = str.charCodeAt(0);
+      if (c0 === 0) {
         try {
           const dims = JSON.parse(str.slice(1));
           sessions.resize(sess.id, dims);
         } catch (e) {}
+        return;
+      }
+      // Client heartbeat ping ('\u0002…'): echo it back so the client can tell a
+      // healthy connection from a zombie one and reconnect on its own when needed.
+      if (c0 === 2) {
+        try { ws.send('\u0002' + str.slice(1)); } catch (e) {}
         return;
       }
       sessions.write(sess.id, str);
