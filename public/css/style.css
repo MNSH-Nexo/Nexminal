@@ -541,6 +541,8 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 .keybar {
   flex: none;
   display: none; /* hidden by default; shown via media query below */
+  position: relative; /* keep it above the terminal / any overlay */
+  z-index: 30;
   flex-direction: column;
   gap: 6px;
   padding: 8px 8px calc(8px + env(safe-area-inset-bottom));

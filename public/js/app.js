@@ -377,11 +377,13 @@ function initKeybar() {
 }
 
 function updateKeybar() {
-  // Keybar visibility is handled entirely by CSS (@media (hover:none),(max-width:1024px))
-  // so it always shows on phones/tablets even before/without JS. Here we only
-  // release any latched modifier when the keybar isn't actually on screen.
+  // Primary: pure-CSS @media (hover:none),(max-width:1024px) shows the keybar.
+  // Fallback: force display inline so it shows even if the media query doesn't
+  // match in a given emulation. This guarantees phones/tablets see the keybar.
+  const kb = $('keybar');
   const shown = window.matchMedia('(hover: none) and (pointer: coarse)').matches ||
                 window.innerWidth < 1024;
+  if (kb) kb.style.display = shown ? 'flex' : 'none';
   if (!shown) clearMods();
 }
 
