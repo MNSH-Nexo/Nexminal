@@ -25,6 +25,7 @@ function defaultConfig() {
     passwordHash: null,
     ssh: { host: '127.0.0.1', port: 22, username: 'root', authType: 'password', password: '' },
     language: 'fa',
+    keybarSize: 1,
     https: { certFile: '', keyFile: '' },
     createdAt: Date.now()
   };
@@ -45,6 +46,7 @@ function load() {
     const cfg = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
     if (!cfg.webpath) cfg.webpath = generateWebpath();
     if (!cfg.ssh) cfg.ssh = defaultConfig().ssh;
+    if (cfg.keybarSize === undefined) cfg.keybarSize = 1;
     if (!cfg.https) cfg.https = { certFile: '', keyFile: '' };
     return cfg;
   } catch (e) {

@@ -90,14 +90,15 @@ function loadPublic() {
     initialized: s.initialized,
     language: s.language,
     webpath: s.webpath,
-    ssh: s.ssh
+    ssh: s.ssh,
+    keybarSize: s.keybarSize
   };
 }
 
 // ---------- State ----------
 app.get('/api/state', (req, res) => {
   const s = loadPublic();
-  res.json({ ok: true, initialized: cfg.initialized, authed: isAuthed(req), language: s.language, webpath: s.webpath });
+  res.json({ ok: true, initialized: cfg.initialized, authed: isAuthed(req), language: s.language, webpath: s.webpath, keybarSize: s.keybarSize });
 });
 
 // ---------- Setup (first run) ----------
@@ -233,6 +234,13 @@ app.post('/api/language', (req, res) => {
   cfg.language = lang;
   config.save(cfg);
   res.json({ ok: true, language: cfg.language });
+});
+
+app.post('/api/keybar', (req, res) => {
+  const size = Math.min(5, Math.max(1, Math.round(Number((req.body && req.body.size) || 1)) || 1));
+  cfg.keybarSize = size;
+  config.save(cfg);
+  res.json({ ok: true, keybarSize: cfg.keybarSize });
 });
 
 // ---------- Persistent terminal sessions ----------

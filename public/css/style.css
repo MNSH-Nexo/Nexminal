@@ -548,8 +548,11 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
   position: relative; /* upgraded to position:fixed (pinned to viewport bottom) below */
   z-index: 30;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  /* --ks scales every button dimension so an admin can pick the keybar size
+     (1 small … 5 large). Default 1 => the compact size. */
+  --ks: 1;
+  gap: calc(6px * var(--ks));
+  padding: calc(8px * var(--ks)) 8px calc((8px + env(safe-area-inset-bottom)) * var(--ks));
   /* Glassy: translucent so the terminal shows through a bit. Deliberately NO
      backdrop-filter here — a blurred backdrop re-composites on every terminal
      repaint and makes the text shimmer/jitter on phones. The translucent tint
@@ -557,7 +560,7 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
   background: rgba(11, 16, 26, 0.4);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
-.keybar-row { display: flex; gap: 6px; }
+.keybar-row { display: flex; gap: calc(6px * var(--ks)); }
 /* Show the keybar on any touch-primary device (phones & tablets), and also on
    any viewport narrower than 1024px (tablets, split-screen, devtools emulation).
    Pure CSS => no dependence on JS or the `hidden` attribute.
@@ -572,16 +575,16 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 .kbtn {
   appearance: none;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: calc(12px * var(--ks));
   font-weight: 700;
   letter-spacing: 0.4px;
   color: var(--ink);
   background: rgba(18, 24, 38, 0.72);
   border: 1px solid rgba(90, 110, 150, 0.5);
-  border-radius: 10px;
-  padding: 12px 4px;
+  border-radius: calc(10px * var(--ks));
+  padding: calc(12px * var(--ks)) 4px;
   cursor: pointer;
-  min-height: 46px;
+  min-height: calc(46px * var(--ks));
   transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
   touch-action: manipulation;
   user-select: none;
@@ -600,6 +603,42 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
 .kclear { color: var(--danger); border-color: rgba(251, 106, 106, 0.45); }
 .ksess { font-size: 20px; padding: 8px 4px; color: var(--accent-2); }
 .kadd { font-size: 20px; padding: 8px 4px; color: var(--cyan); }
+
+/* Admin: keybar size slider */
+.slider-row { display: flex; align-items: center; gap: 10px; }
+input[type="range"].slider {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 1;
+  height: 6px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"].slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+input[type="range"].slider::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.keybar-size-val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent-2);
+  min-width: 18px;
+  text-align: center;
+}
 
 /* ============================================================
    Motion

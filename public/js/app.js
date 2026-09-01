@@ -35,6 +35,10 @@ const I18N = {
     secLangTitle: 'زبان',
     langFa: 'فارسی',
     langEn: 'English',
+    secKeybarTitle: 'اندازه‌ی کیبار',
+    secKeybarHint: 'اندازه‌ی دکمه‌های کیبار موبایل (کوچک ← بزرگ)',
+    saveKeybar: 'ذخیره اندازه',
+    keybarSizeLabel: 'اندازه',
     wrongPass: 'رمز فعلی اشتباه است.',
     saved: 'ذخیره شد.',
     pathChanged: 'مسیر تغییر کرد. در حال انتقال…',
@@ -100,6 +104,10 @@ const I18N = {
     secLangTitle: 'Language',
     langFa: 'فارسی',
     langEn: 'English',
+    secKeybarTitle: 'Keybar size',
+    secKeybarHint: 'Mobile keybar button size (small ← large)',
+    saveKeybar: 'Save size',
+    keybarSizeLabel: 'Size',
     wrongPass: 'Current password is wrong.',
     saved: 'Saved.',
     pathChanged: 'Path changed. Redirecting…',
@@ -360,9 +368,22 @@ function initTerminal() {
 }
 
 /* --- Mobile keybar (Termux-style) --- */
+function applyKeybarSize(size) {
+  // Maps the admin-selected level (1…5) onto a CSS scale for --ks on the keybar.
+  const s = Math.min(5, Math.max(1, Number(size) || 1));
+  const scale = (0.74 + (s - 1) * 0.13).toFixed(2); // 0.74 … 1.26
+  const kb = $('keybar');
+  if (kb) kb.style.setProperty('--ks', scale);
+  const slider = $('keybar-size');
+  const val = $('keybar-size-val');
+  if (slider) slider.value = s;
+  if (val) val.textContent = s;
+}
+
 function initKeybar() {
   const kb = $('keybar');
   if (!kb) return;
+  applyKeybarSize(state && state.keybarSize);
   kb.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
@@ -724,6 +745,18 @@ function initAdmin() {
 
   $('btn-lang-fa').addEventListener('click', () => post(WEBPATH + '/api/language', { lang: 'fa' }).then(() => setLang('fa')));
   $('btn-lang-en').addEventListener('click', () => post(WEBPATH + '/api/language', { lang: 'en' }).then(() => setLang('en')));
+
+  const ks = $('keybar-size');
+  const ksl = $('keybar-size-val');
+  if (ks && ksl) ks.addEventListener('input', () => { ksl.textContent = ks.value; });
+  $('btn-save-keybar').addEventListener('click', async () => {
+    const val = Math.min(5, Math.max(1, Number(ks && ks.value) || 1));
+    const { status } = await post(WEBPATH + '/api/keybar', { size: val });
+    const m = $('msg-keybar');
+    m.hidden = false;
+    if (status === 200) { m.className = 'mini-msg ok'; m.textContent = T.saved; applyKeybarSize(val); }
+    else { m.className = 'mini-msg warn'; m.textContent = T.errSsh; }
+  });
 }
 
 async function loadStatus() {

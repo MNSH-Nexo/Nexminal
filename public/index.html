@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#070a12" />
   <title>Nexminal</title>
   <link rel="stylesheet" href="{{WEBPATH}}/vendor/xterm/css/xterm.css" />
-  <link rel="stylesheet" href="{{WEBPATH}}/css/style.css?v=14" />
+  <link rel="stylesheet" href="{{WEBPATH}}/css/style.css?v=15" />
 </head>
 <body>
   <!-- SETUP -->
@@ -199,6 +199,17 @@
           <button class="btn" id="btn-lang-en" data-i18n="langEn">English</button>
         </div>
       </div>
+
+      <div class="group">
+        <h3 id="sec-keybar-title" data-i18n="secKeybarTitle">اندازه‌ی کیبار</h3>
+        <p class="mini-msg" id="keybar-hint" data-i18n="secKeybarHint">اندازه‌ی دکمه‌های کیبار موبایل (کوچک ← بزرگ)</p>
+        <div class="slider-row">
+          <input type="range" id="keybar-size" class="slider" min="1" max="5" step="1" value="1" aria-label="keybar size" />
+          <span id="keybar-size-val" class="keybar-size-val">1</span>
+        </div>
+        <button class="btn" id="btn-save-keybar" data-i18n="saveKeybar">ذخیره اندازه</button>
+        <p class="mini-msg" id="msg-keybar" hidden></p>
+      </div>
     </div>
   </aside>
 
@@ -223,6 +234,6 @@
   <script src="{{WEBPATH}}/vendor/xterm/lib/xterm.js"></script>
   <script src="{{WEBPATH}}/vendor/addon-fit/lib/addon-fit.js"></script>
   <script src="{{WEBPATH}}/vendor/addon-web-links/lib/addon-web-links.js"></script>
-  <script src="{{WEBPATH}}/js/app.js?v=12"></script>
+  <script src="{{WEBPATH}}/js/app.js?v=13"></script>
 </body>
 </html>
