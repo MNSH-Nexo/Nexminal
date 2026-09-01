@@ -370,8 +370,9 @@ function initTerminal() {
 /* --- Mobile keybar (Termux-style) --- */
 function applyKeybarSize(size) {
   // Maps the admin-selected level (1…5) onto a CSS scale for --ks on the keybar.
+  // Range now spans much smaller: level 1 ≈ 0.50, level 5 ≈ 1.38.
   const s = Math.min(5, Math.max(1, Number(size) || 1));
-  const scale = (0.74 + (s - 1) * 0.13).toFixed(2); // 0.74 … 1.26
+  const scale = (0.5 + (s - 1) * 0.22).toFixed(2);
   const kb = $('keybar');
   if (kb) kb.style.setProperty('--ks', scale);
   const slider = $('keybar-size');
@@ -696,12 +697,14 @@ function setStatus(kind) {
 function openMenu() {
   $('menu').classList.add('open');
   $('overlay').hidden = false;
+  document.body.classList.add('menu-open');
   loadStatus();
 }
 
 function closeMenu() {
   $('menu').classList.remove('open');
   $('overlay').hidden = true;
+  document.body.classList.remove('menu-open');
 }
 
 function initAdmin() {

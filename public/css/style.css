@@ -561,6 +561,9 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 .keybar-row { display: flex; gap: calc(6px * var(--ks)); }
+/* While the admin menu drawer is open, the keybar would otherwise sit above the
+   drawer (it has a higher z-index). Hide it so it never covers the menu. */
+body.menu-open .keybar { display: none !important; }
 /* Show the keybar on any touch-primary device (phones & tablets), and also on
    any viewport narrower than 1024px (tablets, split-screen, devtools emulation).
    Pure CSS => no dependence on JS or the `hidden` attribute.
@@ -598,11 +601,11 @@ html[dir="ltr"] .drawer.open { transform: translateX(0); }
   border-color: transparent;
   box-shadow: 0 4px 12px rgba(77, 139, 255, 0.4);
 }
-.karrow { font-size: 17px; padding: 8px 4px; }
-.kchr { font-size: 16px; font-weight: 700; }
+.karrow { font-size: calc(17px * var(--ks)); padding: calc(8px * var(--ks)) 4px; }
+.kchr { font-size: calc(16px * var(--ks)); font-weight: 700; }
 .kclear { color: var(--danger); border-color: rgba(251, 106, 106, 0.45); }
-.ksess { font-size: 20px; padding: 8px 4px; color: var(--accent-2); }
-.kadd { font-size: 20px; padding: 8px 4px; color: var(--cyan); }
+.ksess { font-size: calc(20px * var(--ks)); padding: calc(8px * var(--ks)) 4px; color: var(--accent-2); }
+.kadd { font-size: calc(20px * var(--ks)); padding: calc(8px * var(--ks)) 4px; color: var(--cyan); }
 
 /* Admin: keybar size slider */
 .slider-row { display: flex; align-items: center; gap: 10px; }
