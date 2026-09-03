@@ -44,14 +44,14 @@ function run(cmd) {
 }
 
 function showInfo() {
-  title('اطلاعات دسترسی Nexminal');
-  console.log('  HTTPS : ' + accessUrl());
-  console.log('  Webpath: ' + cfg.webpath);
-  console.log('  زبان   : ' + (cfg.language === 'fa' ? 'فارسی' : 'English'));
-  console.log('  رمزعبور: ' + (cfg.passwordHash ? 'تنظیم شده' : 'هنوز تنظیم نشده (اولین بازدید)'));
+  title('Nexminal access info');
+  console.log('  HTTPS   : ' + accessUrl());
+  console.log('  Webpath : ' + cfg.webpath);
+  console.log('  Language: ' + (cfg.language === 'fa' ? 'Farsi' : 'English'));
+  console.log('  Password: ' + (cfg.passwordHash ? 'set' : 'not set yet (first visit)'));
   const s = cfg.ssh || {};
-  console.log('  SSH مقصد: ' + s.username + '@' + s.host + ':' + (s.port || 22));
-  console.log('  سرویس  : ' + SERVICE + ' -> ' + (serviceActive() ? 'فعال' : 'غیرفعال'));
+  console.log('  SSH target: ' + s.username + '@' + s.host + ':' + (s.port || 22));
+  console.log('  Service : ' + SERVICE + ' -> ' + (serviceActive() ? 'active' : 'inactive'));
   line();
 }
 
@@ -61,78 +61,78 @@ function serviceActive() {
 }
 
 async function changePassword() {
-  title('تغییر رمز عبور مدیریت');
-  const pw = await ask('  رمز عبور جدید (حداقل ۶ کاراکتر): ');
-  if (!pw || String(pw).length < 6) { console.log('  رمز خیلی کوتاه است. (لغو شد)'); return; }
-  const again = await ask('  تکرار رمز عبور: ');
-  if (pw !== again) { console.log('  دو رمز یکسان نیستند. (لغو شد)'); return; }
+  title('Change admin password');
+  const pw = await ask('  New password (at least 6 characters): ');
+  if (!pw || String(pw).length < 6) { console.log('  Password too short. (cancelled)'); return; }
+  const again = await ask('  Confirm password: ');
+  if (pw !== again) { console.log('  The two passwords do not match. (cancelled)'); return; }
   cfg.passwordHash = auth.hashPassword(pw);
   cfg.initialized = true;
   config.save(cfg);
-  console.log('  رمز عبور ذخیره شد. دفعهٔ بعد با همین رمز وارد شوید.');
+  console.log('  Password saved. Log in with it next time.');
 }
 
 async function changeWebpath() {
-  title('تغییر مسیر (Webpath)');
-  console.log('  مسیر فعلی: ' + cfg.webpath);
-  const choice = await ask('  [1] ساخت مسیر رندوم   [2] وارد کردن دلخواه   [0] انصراف: ');
+  title('Change webpath');
+  console.log('  Current path: ' + cfg.webpath);
+  const choice = await ask('  [1] Generate random path   [2] Enter custom path   [0] Cancel: ');
   let np = null;
   if (choice === '1') np = config.generateWebpath();
   else if (choice === '2') {
-    const custom = (await ask('  مسیر جدید (با / شروع شود، فقط حروف/اعداد): ')).trim();
-    if (!/^\/[A-Za-z0-9_-]+$/.test(custom)) { console.log('  فرمت نامعتبر. (لغو شد)'); return; }
+    const custom = (await ask('  New path (starts with /, letters/numbers only): ')).trim();
+    if (!/^\/[A-Za-z0-9_-]+$/.test(custom)) { console.log('  Invalid format. (cancelled)'); return; }
     np = custom;
   } else return;
   cfg.webpath = np;
   config.save(cfg);
-  console.log('  مسیر جدید ذخیره شد: ' + np);
-  console.log('  آدرس جدید: ' + accessUrl());
-  console.log('  (نسخهٔ قبلی از همین حالا بی‌اعتبار است)');
+  console.log('  New path saved: ' + np);
+  console.log('  New URL: ' + accessUrl());
+  console.log('  (The previous version is now invalid)');
 }
 
 async function changeSsh() {
-  title('تغییر اتصال SSH مقصد');
+  title('Change target SSH connection');
   const cur = cfg.ssh || {};
   const host = (await ask('  Host [' + (cur.host || '127.0.0.1') + ']: ')).trim() || cur.host || '127.0.0.1';
   const port = Number((await ask('  Port [' + (cur.port || 22) + ']: ')).trim()) || cur.port || 22;
   const username = (await ask('  Username [' + (cur.username || 'root') + ']: ')).trim() || cur.username || 'root';
-  const password = (await ask('  SSH password (فقط پسورد، خالی=بدون تغییر): ')).trim() || cur.password || '';
+  const password = (await ask('  SSH password (leave empty for no change): ')).trim() || cur.password || '';
   cfg.ssh = { host, port, username, authType: 'password', password };
   config.save(cfg);
-  console.log('  اتصال SSH ذخیره شد: ' + username + '@' + host + ':' + port);
+  console.log('  SSH connection saved: ' + username + '@' + host + ':' + port);
 }
 
 function serviceMenu() {
-  title('کنترل سرویس (' + SERVICE + ')');
-  console.log('  [1] وضعیت   [2] ریاستارت   [3] توقف   [4] شروع   [0] بازگشت');
+  title('Service control (' + SERVICE + ')');
+  console.log('  [1] Status   [2] Restart   [3] Stop   [4] Start   [0] Back');
   run(`systemctl status ${SERVICE} --no-pager | head -8`);
 }
 
 function destroy() {
-  title('حذف کامل Nexminal');
-  const w = ask('  برای حذف کلیدواژهٔ DELETE را تایپ کنید: ');
+  title('Completely delete Nexminal');
+  const w = ask('  Type DELETE to confirm deletion: ');
   w.then(async (s) => {
-    if (String(s).trim() !== 'DELETE') { console.log('  لغو شد.'); rl.close(); return; }
+    if (String(s).trim() !== 'DELETE') { console.log('  Cancelled.'); rl.close(); return; }
     run(`systemctl disable --now ${SERVICE} 2>/dev/null; rm -f /etc/systemd/system/${SERVICE}.service; systemctl daemon-reload`);
     config.destroy();
-    console.log('  سرویس و تنظیمات حذف شد. (فایل‌های برنامه دست‌نخورده‌اند)');
+    console.log('  Service and config deleted. (Application files are untouched)');
     rl.close();
   });
   return; // keep reading until the DELETE flow resolves
 }
 
 async function main() {
-  title('Nexminal — منوی مدیریت');
+  title('Nexminal — management menu');
   showInfo();
   while (true) {
-    console.log('\n  [1] اطلاعات دسترسی');
-    console.log('  [2] تغییر رمز عبور');
-    console.log('  [3] تغییر مسیر (Webpath)');
-    console.log('  [4] تغییر اتصال SSH مقصد');
-    console.log('  [5] کنترل سرویس');
-    console.log('  [6] حذف کامل Nexminal');
-    console.log('  [0] خروج');
-    const choice = (await ask('\n  انتخاب: ')).trim();
+    console.log('\n  [1] Access info');
+    console.log('  [2] Change password');
+    console.log('  [3] Change webpath');
+    console.log('  [4] Change target SSH connection');
+    console.log('  [5] Service control');
+    console.log('  [6] Completely delete Nexminal');
+    console.log('  [0] Exit');
+    const choice = (await ask('\n  Choice: ')).trim();
     if (choice === '0' || choice === '' || choice === 'q' || choice === 'exit') break;
     if (choice === '1') showInfo();
     else if (choice === '2') await changePassword();
@@ -140,7 +140,7 @@ async function main() {
     else if (choice === '4') await changeSsh();
     else if (choice === '5') serviceMenu();
     else if (choice === '6') { destroy(); return; }
-    else console.log('  گزینهٔ نامعتبر.');
+    else console.log('  Invalid option.');
   }
   rl.close();
 }

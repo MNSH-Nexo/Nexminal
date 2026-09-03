@@ -704,3 +704,12 @@ input[type="range"].slider::-moz-range-thumb {
   .badge { padding: 4px 10px; font-size: 10px; }
   .tools-sep { display: none; }
 }
+
+/* Mobile touch: let the internal xterm scrollback scroll smoothly with touch
+   momentum, and keep its gesture from fighting the (overflow:hidden) page. */
+.xterm .xterm-viewport {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}

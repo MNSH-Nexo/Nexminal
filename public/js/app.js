@@ -220,7 +220,7 @@ async function boot() {
   setLang(state.language || 'fa');
   if (!state.initialized) { showScreen('setup'); bindSetup(); }
   else if (!state.authed) { showScreen('login'); bindLogin(); }
-  else { showScreen('term'); initTerminal(); initAdmin(); initSessions(); }
+  else { showScreen('term'); initTerminal(); initAdmin(); initSessions(state.sessions); }
 }
 
 /* ------------------------------------------------------------------ */
@@ -429,13 +429,9 @@ function initKeybar() {
   const kb = $('keybar');
   if (!kb) return;
   applyKeybarSize(state && state.keybarSize);
-  kb.addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    // Keep the phone keyboard open after tapping a keybar key by returning focus
-    // to the terminal (tapping the button would otherwise blur the textarea and
-    // dismiss the keyboard).
-    setTimeout(() => { if (term) term.focus(); }, 0);
+
+  /* Run the action for a tapped keybar button. */
+  const fire = (b) => {
     if (b.dataset.mod === 'ctrl') { toggleMod('ctrl'); return; }
     if (b.dataset.mod === 'alt') { toggleMod('alt'); return; }
     if (b.dataset.mod === 'shift') { toggleMod('shift'); return; }
@@ -449,7 +445,33 @@ function initKeybar() {
     if (b.dataset.sess === 'prev') { cycleSession(-1); return; }
     if (b.dataset.sess === 'next') { cycleSession(1); return; }
     if (b.dataset.sess === 'new') { createSession(); return; }
-  });
+  };
+
+  /* Why this approach (no more keyboard flicker):
+     Each keybar key is a <button>. If we let a tap move focus to the button, the
+     terminal's input loses focus and the OS keyboard collapses; the old code then
+     called term.focus() to bring it back, producing the open/close blink.
+
+     Fix: handle the press on pointerdown and call preventDefault() so the button
+     never takes focus. The terminal input therefore keeps focus the whole time and
+     the phone keyboard stays up — no close/reopen needed. A late 'click' (some
+     browsers fire it after pointerdown) is deduplicated so each tap runs once. */
+  let pendingPress = null;
+  const onPointerDown = (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    e.preventDefault();
+    pendingPress = b;
+    fire(b);
+  };
+  const onClick = (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (pendingPress === b) { pendingPress = null; return; } // already handled on pointerdown
+    fire(b);
+  };
+  kb.addEventListener('pointerdown', onPointerDown);
+  kb.addEventListener('click', onClick);
 }
 
 function updateKeybar() {
@@ -469,6 +491,7 @@ function updateKeybar() {
 // screen height, so detection works even on phones whose window.innerHeight
 // also shrinks when the keyboard appears.
 let kbBaseH = 0;
+let kbJustOpenedState = false;
 function watchKeyboard() {
   const vv = window.visualViewport;
   const screen = $('screen-term');
@@ -483,6 +506,8 @@ function watchKeyboard() {
   const applyKb = () => {
     refreshBase();
     const open = vv.height < (kbBaseH - 120);
+    const kbJustOpened = open && !kbJustOpenedState;
+    kbJustOpenedState = open;
     // Distance (px) from the bottom of the layout viewport to the visible area
     // = height of the on-screen keyboard (0 when it is closed).
     const kbBottom = Math.max(0, window.innerHeight - (vv.offsetTop + vv.height));
@@ -496,8 +521,10 @@ function watchKeyboard() {
     const bar = kb ? kb.offsetHeight : 0;
     if (wrap) wrap.style.marginBottom = bar + 'px';
 
-    // Reveal the current prompt so the user can always see where they type.
-    if (open && term && term.scrollToBottom) term.scrollToBottom();
+    // Reveal the prompt once, right when the keyboard opens. Never re-run it on
+    // every resize/scroll event: on mobile those fire constantly and would yank
+    // the user back to the bottom while they manually scroll history.
+    if (kbJustOpened && term && term.scrollToBottom) term.scrollToBottom();
   };
 
   window.addEventListener('resize', applyKb);
@@ -613,11 +640,13 @@ function toggleFullscreen() {
 }
 
 /* --- Session lifecycle --- */
-async function initSessions() {
-  const r = await fetch(WEBPATH + '/api/sessions');
-  if (r.ok) {
-    const d = await r.json();
-    sessions = d.sessions || [];
+async function initSessions(pre) {
+  // Prefetched with /api/state (boot) when authed - avoids an extra RTT on load.
+  if (pre) {
+    sessions = Array.isArray(pre) ? pre : [];
+  } else {
+    const r = await fetch(WEBPATH + '/api/sessions');
+    if (r.ok) { const d = await r.json(); sessions = d.sessions || []; }
   }
   if (sessions.length) {
     const last = localStorage.getItem('nex_last');

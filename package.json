@@ -15,6 +15,7 @@
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/xterm": "^5.5.0",
     "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.6",
     "express": "^4.19.2",
     "ssh2": "^1.15.0",

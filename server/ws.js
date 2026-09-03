@@ -22,7 +22,9 @@ function attachWSServer(server) {
     // Compress terminal output on the wire — big win on slow/limited networks
     // since shell output has lots of repeated whitespace and control chars.
     perMessageDeflate: {
-      threshold: 128,
+      // Compress even small frames (context takeover keeps the dictionary warm,
+      // so each frame piggybacks on the previous one's history - RFC 7692).
+      threshold: 64,
       zlibDeflateOptions: { chunkSize: 1024, memLevel: 7, level: 6 },
       zlibInflateOptions: { chunkSize: 16 * 1024 }
     }

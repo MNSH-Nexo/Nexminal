@@ -6,6 +6,7 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 const config = require('./config');
 const auth = require('./auth');
 const sessions = require('./sessions');
@@ -19,6 +20,11 @@ const INDEX_HTML = path.join(PUBLIC_DIR, 'index.html');
 
 const app = express();
 app.disable('x-powered-by');
+// Compress every HTTP response (HTML, JS, CSS, JSON, vendor libs). The
+// big xterm.js (~289KB) and our shell output drop several-fold over the
+// wire, which matters most on slow/limited (2G) links. WebSocket frames
+// are already deflate-compressed separately and bypass this layer.
+app.use(compression({ threshold: 512 }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
 
@@ -98,7 +104,18 @@ function loadPublic() {
 // ---------- State ----------
 app.get('/api/state', (req, res) => {
   const s = loadPublic();
-  res.json({ ok: true, initialized: cfg.initialized, authed: isAuthed(req), language: s.language, webpath: s.webpath, keybarSize: s.keybarSize });
+  const authed = isAuthed(req);
+  res.json({
+    ok: true,
+    initialized: cfg.initialized,
+    authed,
+    language: s.language,
+    webpath: s.webpath,
+    keybarSize: s.keybarSize,
+    // Authed clients get the session list here too, so the terminal page needs
+    // only one round trip on load instead of two (meaningful on slow links).
+    sessions: authed ? sessions.list() : undefined
+  });
 });
 
 // ---------- Setup (first run) ----------
